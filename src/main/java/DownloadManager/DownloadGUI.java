@@ -2,8 +2,22 @@ package DownloadManager;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.reflect.Array;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -12,7 +26,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
 import org.apache.log4j.Logger;
+
+import sun.net.ftp.FtpClient;
 
 public class DownloadGUI extends JFrame implements ActionListener {
 	final static Logger logger = Logger.getLogger(DownloadGUI.class);
@@ -29,14 +48,16 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	private JTextField noOfThreadsTextField;
 	private JButton runButton;
 	private int noOfThreads;
-
+	private CustomCheckBoxGroup checkboxgroup;
+	private String[] names;
+	private FTPFile[] files;
 	boolean pathWasChosen;
 
 	public DownloadGUI(FTPLogin downloader) {
 		super("DownloadGUI");
 		this.setResizable(false);
 		this.downloader = downloader;
-		this.setSize(300, 550);
+		this.setSize(600, 550);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		JPanel panel = new JPanel();
@@ -88,6 +109,26 @@ public class DownloadGUI extends JFrame implements ActionListener {
 
 		scroll.setBounds(10, 260, 270, 230);
 		panel.add(scroll);
+
+		files = new FTPFile[] {};
+		try {
+			files = getFiles();
+		} catch (IOException e) {
+			logger.error(e.getMessage());
+		}
+
+		String[] names = new String[files.length];
+		for (int i = 0; i < files.length; i++) {
+			names[i] = files[i].getName();
+		}
+		checkboxgroup = new CustomCheckBoxGroup(names);
+		checkboxgroup.setBounds(300, 10, 250, 500);
+		panel.add(checkboxgroup);
+	}
+
+	private FTPFile[] getFiles() throws IOException {
+		// return downloader.getFtpClient().listNames();
+		return downloader.getFtpClient().listFiles();
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -100,7 +141,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				runButton.setEnabled(true);
 			}
 		} else if (e.getSource() == runButton) {
-			
+
 			if (noOfThreadsTextField.getText().trim().isEmpty()) {
 				noOfThreads = 5;
 				setErrorLabel();
@@ -117,13 +158,44 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			if (noOfThreads <= 0) {
 				setErrorLabel();
 			} else {
-				try {
-					String[] files = downloader.getFtpClient().listNames();
-					
-				} catch (Exception ex) {
-					logger.info(ex.getMessage());
+				Collection<DownloadThread> collection = new ArrayList<DownloadThread>();
+
+				// trebuie sa fac o lista numai cu fisierele selectate si sa
+				// verific
+				// sa downloadez numai ce e selectat
+
+				List<String> names = new ArrayList<String>();
+				List<JCheckBox> checkBoxes = checkboxgroup.getCheckBoxes();
+				for (int i = 0; i < checkBoxes.size(); i++) {
+					if (checkBoxes.get(i).isSelected()) {
+						names.add(checkBoxes.get(i).getText());
+					}
 				}
-				System.out.println("Run was clicked");
+
+				int end = 0;
+				// trebuie sa fac sa ruleze pe 5 threaduri si sa downloadeze
+				// toate fisierele, deci o verificare cu files.size si dupa...
+				
+				
+				ExecutorService executor = Executors.newFixedThreadPool(noOfThreads);
+				for (int i = 0; i < files.length; i++) {
+					if (names.contains(files[i].getName())) {
+						FTPLogin ftpLogin = new FTPLogin(downloader.getServer(), 21);
+						ftpLogin.login(downloader.getUser(), downloader.getPassword());
+
+						DownloadThread task = new DownloadThread(ftpLogin.getFtpClient(), files[i], path);
+						collection.add(task);
+					}
+				}
+
+				try {
+					// display.setText(display.getText() +
+
+					executor.invokeAll(collection);
+					executor.shutdown();
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
 			}
 		}
 
@@ -143,12 +215,6 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		chooser.setAcceptAllFileFilterUsed(false);
 
 		if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-			/*
-			 * System.out.println("getCurrentDirectory(): " +
-			 * chooser.getCurrentDirectory());
-			 * System.out.println("getSelectedFile() : " +
-			 * chooser.getSelectedFile());
-			 */
 			return chooser.getSelectedFile().toString();
 		} else {
 			return null;
