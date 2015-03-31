@@ -73,8 +73,6 @@ public class LoginGUI extends JFrame implements ActionListener {
 
 	public void actionPerformed(ActionEvent e) {
 		downloader = new FTPLogin(hostnameText.getText(), 21);
-		System.out.println(userText.getText());
-		System.out.println(new String(passwordText.getPassword()));
 		if(downloader.login(userText.getText(), new String(passwordText.getPassword()))) {
 			this.setEnabled(false);
 			new DownloadGUI(downloader);

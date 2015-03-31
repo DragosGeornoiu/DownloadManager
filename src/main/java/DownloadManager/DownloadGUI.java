@@ -39,11 +39,13 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	private JButton runButton;
 	private JButton refreshButton;
 	private JButton clearButton;
+	private JButton stopButton;
 	private int noOfThreads;
 	private CustomCheckBoxGroup checkboxgroup;
 	private String[] names;
 	private FTPFile[] files;
 	private JPanel panel;
+	private ExecutorService executor;
 
 	public DownloadGUI(FTPLogin downloader) {
 		super("DownloadGUI");
@@ -90,9 +92,15 @@ public class DownloadGUI extends JFrame implements ActionListener {
 
 		runButton = new JButton("Donwload");
 		runButton.addActionListener(this);
-		runButton.setBounds(90, 225, 100, 25);
+		runButton.setBounds(10, 225, 100, 25);
 		runButton.setEnabled(false);
 		panel.add(runButton);
+		
+
+		stopButton = new JButton("Stop");
+		stopButton.addActionListener(this);
+		stopButton.setBounds(130, 225, 100, 25);
+		panel.add(stopButton);
 		
 		refreshButton = new JButton("Refresh");
 		refreshButton.addActionListener(this);
@@ -119,7 +127,6 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		files = new FTPFile[] {};
 		try {
 			files = getFiles();
-			System.out.println(files.length);
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 		}
@@ -143,8 +150,6 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	}
 
 	private FTPFile[] getFiles() throws IOException {
-		// return downloader.getFtpClient().listNames();
-		// return downloader.getFtpClient().listFiles();
 		downloader.setFtpClient(new FTPClient());
 		downloader.login(downloader.getUser(), downloader.getPassword());
 		return downloader.getFtpClient().listFiles();
@@ -186,7 +191,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 					}
 				}
 
-				ExecutorService executor = Executors.newFixedThreadPool(noOfThreads);
+				executor = Executors.newFixedThreadPool(noOfThreads);
 				for (int i = 0; i < files.length; i++) {
 					if (names.contains(files[i].getName())) {
 						FTPLogin ftpLogin = new FTPLogin(downloader.getServer(), 21);
@@ -195,6 +200,10 @@ public class DownloadGUI extends JFrame implements ActionListener {
 						//DownloadThread task = new DownloadThread(display, ftpLogin.getFtpClient(), files[i], path);
 						Worker task = new Worker(display, ftpLogin.getFtpClient(), files[i], path);
 						//collection.add(task);
+						
+						// poti vedea si cu future, dar cred ca asta inseamna un singur
+						// rezultat, nu multiple, insa atunci nu ar mai trebui sa trimiti
+						// display ca parametru.
 						executor.submit(task);
 					}
 				}
@@ -212,6 +221,10 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			initialiseCheckGroup();
 		} else if(e.getSource()== clearButton) {
 			display.setText("");
+		} else if(e.getSource() == stopButton) {
+			executor.shutdownNow();
+			//this shouldn't be, but at least you can test how to resume everything
+			System.exit(0);
 		}
 
 	}
