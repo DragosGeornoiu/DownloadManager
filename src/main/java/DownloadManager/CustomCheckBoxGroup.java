@@ -68,6 +68,7 @@ public class CustomCheckBoxGroup extends JPanel {
 	}
 
 	public class ScrollablePane extends JPanel implements Scrollable {
+		private static final long serialVersionUID = 1L;
 
 		public ScrollablePane(LayoutManager layout) {
 			super(layout);

@@ -69,6 +69,10 @@ public class LoginGUI extends JFrame implements ActionListener {
 		errorLabel = new JLabel("");
 		errorLabel.setBounds(10, 130, 160, 25);
 		panel.add(errorLabel);
+		
+		hostnameText.setText("localhost");
+		userText.setText("user");
+		passwordText.setText("password");
 	}
 
 	public void actionPerformed(ActionEvent e) {

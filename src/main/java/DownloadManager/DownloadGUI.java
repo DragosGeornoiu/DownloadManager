@@ -4,7 +4,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,10 +41,11 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	private JButton stopButton;
 	private int noOfThreads;
 	private CustomCheckBoxGroup checkboxgroup;
-	private String[] names;
+	// private String[] names;
 	private FTPFile[] files;
 	private JPanel panel;
 	private ExecutorService executor;
+	List<Worker> workerList;
 
 	public DownloadGUI(FTPLogin downloader) {
 		super("DownloadGUI");
@@ -95,23 +95,22 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		runButton.setBounds(10, 225, 100, 25);
 		runButton.setEnabled(false);
 		panel.add(runButton);
-		
 
 		stopButton = new JButton("Stop");
 		stopButton.addActionListener(this);
 		stopButton.setBounds(130, 225, 100, 25);
 		panel.add(stopButton);
-		
+
 		refreshButton = new JButton("Refresh");
 		refreshButton.addActionListener(this);
 		refreshButton.setBounds(350, 10, 100, 25);
 		panel.add(refreshButton);
-		
+
 		clearButton = new JButton("Clear");
 		clearButton.addActionListener(this);
 		clearButton.setBounds(90, 500, 100, 25);
 		panel.add(clearButton);
-		
+
 		display = new JTextArea();
 		display.setEditable(false);
 		scroll = new JScrollPane(display, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
@@ -135,18 +134,18 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		for (int i = 0; i < files.length; i++) {
 			names[i] = files[i].getName();
 		}
-		
-		if(checkboxgroup != null) {
+
+		if (checkboxgroup != null) {
 			panel.remove(checkboxgroup);
 		}
-		
+
 		checkboxgroup = new CustomCheckBoxGroup(names);
 		checkboxgroup.setBounds(300, 50, 250, 500);
-		
+
 		panel.revalidate();
 		panel.repaint();
 		panel.add(checkboxgroup);
-		
+
 	}
 
 	private FTPFile[] getFiles() throws IOException {
@@ -165,7 +164,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				runButton.setEnabled(true);
 			}
 		} else if (e.getSource() == runButton) {
-
+			stopButton.setText("Stop");
 			if (noOfThreadsTextField.getText().trim().isEmpty()) {
 				setErrorLabel();
 			} else {
@@ -181,7 +180,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			if (noOfThreads <= 0) {
 				setErrorLabel();
 			} else {
-				Collection<DownloadThread> collection = new ArrayList<DownloadThread>();
+				workerList = new ArrayList<Worker>();
 
 				List<String> names = new ArrayList<String>();
 				List<JCheckBox> checkBoxes = checkboxgroup.getCheckBoxes();
@@ -197,34 +196,52 @@ public class DownloadGUI extends JFrame implements ActionListener {
 						FTPLogin ftpLogin = new FTPLogin(downloader.getServer(), 21);
 						ftpLogin.login(downloader.getUser(), downloader.getPassword());
 
-						//DownloadThread task = new DownloadThread(display, ftpLogin.getFtpClient(), files[i], path);
+						// DownloadThread task = new DownloadThread(display,
+						// ftpLogin.getFtpClient(), files[i], path);
 						Worker task = new Worker(display, ftpLogin.getFtpClient(), files[i], path);
-						//collection.add(task);
-						
-						// poti vedea si cu future, dar cred ca asta inseamna un singur
-						// rezultat, nu multiple, insa atunci nu ar mai trebui sa trimiti
+						// collection.add(task);
+
+						// poti vedea si cu future, dar cred ca asta inseamna un
+						// singur
+						// rezultat, nu multiple, insa atunci nu ar mai trebui
+						// sa trimiti
 						// display ca parametru.
-						executor.submit(task);
+						// executor.submit(task);
+						workerList.add(task);
 					}
 				}
 
-				/*try {
-					// display.setText(display.getText() +
+				for (int i = 0; i < workerList.size(); i++) {
+					executor.submit(workerList.get(i));
+				}
 
-					executor.invokeAll(collection);
-					executor.shutdown();
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}*/
+				/*
+				 * try { // display.setText(display.getText() +
+				 * 
+				 * executor.invokeAll(collection); executor.shutdown(); } catch
+				 * (Exception ex) { ex.printStackTrace(); }
+				 */
 			}
-		} else if(e.getSource()== refreshButton) {
+		} else if (e.getSource() == refreshButton) {
 			initialiseCheckGroup();
-		} else if(e.getSource()== clearButton) {
+		} else if (e.getSource() == clearButton) {
 			display.setText("");
-		} else if(e.getSource() == stopButton) {
-			executor.shutdownNow();
-			//this shouldn't be, but at least you can test how to resume everything
-			System.exit(0);
+		} else if (e.getSource() == stopButton) {
+			if (stopButton.getText().equals("Stop")) {
+				for (int i = 0; i < workerList.size(); i++) {
+					workerList.get(i).pause();
+				}
+
+				display.append("---PAUSE---" + "\n");
+				stopButton.setText("Resume");
+			} else if (stopButton.getText().equals("Resume")) {
+				for (int i = 0; i < workerList.size(); i++) {
+					workerList.get(i).resume();
+				}
+				display.append("---RESUME---" + "\n");
+				stopButton.setText("Stop");
+			}
+
 		}
 
 	}
@@ -247,5 +264,5 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			return null;
 		}
 	}
-	
+
 }
