@@ -228,18 +228,19 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			display.setText("");
 		} else if (e.getSource() == stopButton) {
 			if (stopButton.getText().equals("Stop")) {
+				display.append("---PAUSE---" + "\n");
+				stopButton.setText("Resume");
+				
 				for (int i = 0; i < workerList.size(); i++) {
 					workerList.get(i).pause();
 				}
-
-				display.append("---PAUSE---" + "\n");
-				stopButton.setText("Resume");
 			} else if (stopButton.getText().equals("Resume")) {
+				display.append("---RESUME---" + "\n");
+				stopButton.setText("Stop");
+				
 				for (int i = 0; i < workerList.size(); i++) {
 					workerList.get(i).resume();
 				}
-				display.append("---RESUME---" + "\n");
-				stopButton.setText("Stop");
 			}
 
 		}

@@ -35,7 +35,10 @@ public class Worker extends SwingWorker {
 
 	@Override
 	protected Object doInBackground() throws Exception {
+		System.out.println("a");
 		while (!isCancelled() && !isDone()) {
+			System.out.println("b");
+			System.out.println("isPaused:" + isPaused());
 			if (!isPaused()) {
 				download(downloadTo, remoteFile, "");
 			} else {
@@ -58,7 +61,9 @@ public class Worker extends SwingWorker {
 	}
 
 	public boolean download(String to, FTPFile what, String name) {
+		System.out.println("TRYING TO DOWNLOAD: " + what.getName());
 		if (ftpClient == null) {
+			System.out.println("ftpClient is null");
 			logger.info("ftpCliend not initialised");
 			return false;
 		} else {
@@ -70,9 +75,12 @@ public class Worker extends SwingWorker {
 
 					if ((localFile.length() == what.getSize())) {
 						appendMessage("File " + what.getName() + " was already downloaded.");
-					/*} else if ((localFile.length() < what.getSize()) && (localFile.length() != 0)) {
-						appendMessage("Continuing download of file " + what.getName());
-						resumeDownload(to, what, "");*/
+						/*
+						 * } else if ((localFile.length() < what.getSize()) &&
+						 * (localFile.length() != 0)) {
+						 * appendMessage("Continuing download of file " +
+						 * what.getName()); resumeDownload(to, what, "");
+						 */
 					} else {
 						appendMessage("Starting to download file: " + what.getName());
 						downloadSingleFile(to, what);
@@ -85,51 +93,42 @@ public class Worker extends SwingWorker {
 		return true;
 	}
 
-	/*
-	 * public void downloadSingleFile(String to, FTPFile what) { try {
-	 * ftpClient.enterLocalPassiveMode();
-	 * ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-	 * 
-	 * OutputStream outputStream1 = new BufferedOutputStream(new
-	 * FileOutputStream(to + "\\" + what.getName())); boolean success =
-	 * ftpClient.retrieveFile(what.getName(), outputStream1);
-	 * outputStream1.close();
-	 * 
-	 * if (success) { logger.info("File #1 has been downloaded successfully.");
-	 * } } catch (Exception ex) { logger.error(ex.getMessage()); } }
-	 */
-
 	public void downloadSingleFile(String to, FTPFile what) {
+		System.out.println("DOWNLOADING SINGLE FILE: " + what.getName());
 		BufferedInputStream inputStream = null;
 		BufferedOutputStream outputStream = null;
 		InputStream in = null;
 		File localFile = new File(to, what.getName());
 		try {
-			in = ftpClient.retrieveFileStream(what.getName());
-			inputStream = new BufferedInputStream(in);
+			// in = ftpClient.retrieveFileStream(what.getName());
+			inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(what.getName()));
 			outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
 
 			int read = inputStream.read();
-			while(!isPaused() && read != -1) {
+			while (isPaused() || read != -1) {
 				outputStream.write(read);
 				read = inputStream.read();
 			}
 
+			// in.close();
 			outputStream.flush();
+			outputStream.close();
 
-			System.out.println("remainingInDir: " + remainingInDirectory);
-			System.out.println("whatSize: " + what.getSize());
-			System.out.println("localSize: " + localFile.length());
-			if (what.getSize() ==  localFile.length() && remainingInDirectory == 0 ) {
+			if (!ftpClient.completePendingCommand()) {
+				ftpClient.logout();
+				ftpClient.disconnect();
+				System.err.println("File transfer failed.");
+			}
+
+			if (what.getSize() == localFile.length() && remainingInDirectory == 0) {
 				this.cancel(true);
 			}
 		} catch (Exception e) {
-
+			e.printStackTrace();
 		}
 	}
 
 	public void downloadDirectory(String to, FTPFile what, String name) throws InterruptedException {
-		// boolean result = false;
 		File theDir = new File(to + "\\" + what.getName());
 		if (!theDir.exists()) {
 
@@ -141,28 +140,35 @@ public class Worker extends SwingWorker {
 			}
 		}
 
-		// maybe the directory isn't created yet
-		// Thread.sleep(1000);
-		// if (result) {
 		try {
+			System.out.println("BEFORE: " + ftpClient.printWorkingDirectory());
 			boolean check = ftpClient.changeWorkingDirectory(name + "/" + what.getName());
+			System.out.println("BEFORE: " + ftpClient.printWorkingDirectory());
 
 			if (check) {
 				FTPFile[] files = ftpClient.listFiles();
-				remainingInDirectory +=files.length;
-				/*for (int i = 0; i < files.length; i++) {
-					download(to + "\\" + what.getName(), files[i], name + "/" + what.getName());
-				}*/
-				int i=0;
-				while(i<files.length && !isPaused()) {
-					System.out.println("to: " +to + "\\" + what.getName());
+				remainingInDirectory += files.length;
+				/*
+				 * for (int i = 0; i < files.length; i++) { download(to + "\\" +
+				 * what.getName(), files[i], name + "/" + what.getName()); }
+				 */
+				int i = 0;
+				while (i < files.length && !isPaused()) {
+					System.out.println("to: " + to + "\\" + what.getName());
 					System.out.println("what: " + files[i].getName());
-					download(to + "\\" + what.getName(), files[i], name + "/" + what.getName());
+					System.out.println("Iteration of i: " + i);
+					FTPFile file = files[i];
 					i++;
+					download(to + "\\" + what.getName(), file, name + "/" + what.getName());
+					// Thread.sleep(1000);
 					remainingInDirectory--;
 				}
 			}
 			ftpClient.changeToParentDirectory();
+
+			if (remainingInDirectory == 0 || ftpClient.printWorkingDirectory().equals("/")) {
+				this.cancel(true);
+			}
 		} catch (IOException e) {
 			logger.error("Error: " + e.getMessage());
 		}
@@ -170,40 +176,19 @@ public class Worker extends SwingWorker {
 
 	}
 
-	private void resumeDownload(String downloadTo, FTPFile remoteFile, String string) {
-		try {
-			File localFile = new File(downloadTo, remoteFile.getName());
-			ftpClient.setRestartOffset(localFile.length());
-
-			BufferedInputStream inputStream = null;
-			BufferedOutputStream outputStream = null;
-			InputStream in = null;
-			in = ftpClient.retrieveFileStream(remoteFile.getName());
-			inputStream = new BufferedInputStream(in);
-			outputStream = new BufferedOutputStream(new FileOutputStream(localFile, true));
-			for (int read = inputStream.read(); read != -1; read = inputStream.read()) {
-				outputStream.write(read);
-			}
-			outputStream.flush();
-			outputStream.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	public boolean isPaused() {
 		return pause;
 	}
 
 	public void pause() {
-		if (!isPaused() && !isDone()) {
-			pause = true;
-		}
+		pause = true;
 	}
 
 	public void resume() {
-		if (isPaused() && !isDone()) {
-			pause = false;
-		}
+		pause = false;
+		/*
+		 * if (!(isCancelled() || !isDone())) { download(downloadTo, remoteFile,
+		 * ""); }
+		 */
 	}
 }
