@@ -20,6 +20,8 @@ import javax.swing.JViewport;
 import javax.swing.Scrollable;
 import javax.swing.UIManager;
 
+import DownloadManager.Constants.Constants;
+
 public class CustomCheckBoxGroup extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private JCheckBox all;
@@ -29,7 +31,7 @@ public class CustomCheckBoxGroup extends JPanel {
 		checkBoxes = new ArrayList<JCheckBox>(25);
 		setLayout(new BorderLayout());
 		JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 1, 1));
-		all = new JCheckBox("Select All...");
+		all = new JCheckBox(Constants.SELECT_ALL);
 		all.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {

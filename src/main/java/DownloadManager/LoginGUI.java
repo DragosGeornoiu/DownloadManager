@@ -10,6 +10,8 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import DownloadManager.Constants.Constants;
+
 public class LoginGUI extends JFrame implements ActionListener {
 	private static final long serialVersionUID = 1L;
 
@@ -36,7 +38,7 @@ public class LoginGUI extends JFrame implements ActionListener {
 
 		panel.setLayout(null);
 
-		JLabel hostnameLabel = new JLabel("hostname");
+		JLabel hostnameLabel = new JLabel(Constants.HOSTNAME_LABEL);
 		hostnameLabel.setBounds(10, 10, 80, 25);
 		panel.add(hostnameLabel);
 
@@ -44,7 +46,7 @@ public class LoginGUI extends JFrame implements ActionListener {
 		hostnameText.setBounds(100, 10, 160, 25);
 		panel.add(hostnameText);
 
-		JLabel userLabel = new JLabel("User");
+		JLabel userLabel = new JLabel(Constants.USER);
 		userLabel.setBounds(10, 40, 80, 25);
 		panel.add(userLabel);
 
@@ -52,7 +54,7 @@ public class LoginGUI extends JFrame implements ActionListener {
 		userText.setBounds(100, 40, 160, 25);
 		panel.add(userText);
 
-		JLabel passwordLabel = new JLabel("Password");
+		JLabel passwordLabel = new JLabel();
 		passwordLabel.setBounds(10, 70, 80, 25);
 		panel.add(passwordLabel);
 
@@ -60,7 +62,7 @@ public class LoginGUI extends JFrame implements ActionListener {
 		passwordText.setBounds(100, 70, 160, 25);
 		panel.add(passwordText);
 
-		JButton loginButton = new JButton("login");
+		JButton loginButton = new JButton(Constants.LOGIN_BUTTON);
 		loginButton.setBounds(180, 100, 80, 25);
 		panel.add(loginButton);
 
@@ -81,7 +83,7 @@ public class LoginGUI extends JFrame implements ActionListener {
 			this.setEnabled(false);
 			new DownloadGUI(downloader);
 		} else {
-			errorLabel.setText("<html><font color='red'>The credentials didn't check out</font></html>");
+			errorLabel.setText(Constants.LOGIN_NOT_SUCCESSFULL);
 		}
 		
 

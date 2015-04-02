@@ -22,6 +22,8 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.log4j.Logger;
 
+import DownloadManager.Constants.Constants;
+
 public class DownloadGUI extends JFrame implements ActionListener {
 	final static Logger logger = Logger.getLogger(DownloadGUI.class);
 	private static final long serialVersionUID = 1L;
@@ -41,7 +43,6 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	private JButton stopButton;
 	private int noOfThreads;
 	private CustomCheckBoxGroup checkboxgroup;
-	// private String[] names;
 	private FTPFile[] files;
 	private JPanel panel;
 	private ExecutorService executor;
@@ -65,20 +66,20 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	private void placeComponents() {
 		panel.setLayout(null);
 
-		JLabel hostnameLabel = new JLabel("You logged in succesfull");
+		JLabel hostnameLabel = new JLabel();
 		hostnameLabel.setBounds(10, 10, 160, 25);
 		panel.add(hostnameLabel);
 
-		selectPathButton = new JButton("Path");
+		selectPathButton = new JButton(Constants.PATH_LABEL);
 		selectPathButton.addActionListener(this);
 		selectPathButton.setBounds(10, 50, 100, 25);
 		panel.add(selectPathButton);
 
-		pathLabel = new JLabel("Path: no path selected");
+		pathLabel = new JLabel(Constants.NO_PATH_SELECTED);
 		pathLabel.setBounds(10, 90, 250, 25);
 		panel.add(pathLabel);
 
-		JLabel threads = new JLabel("no. of threads: ");
+		JLabel threads = new JLabel(Constants.NUMBER_OF_THREADS_LABEL);
 		threads.setBounds(10, 130, 100, 25);
 		panel.add(threads);
 
@@ -90,23 +91,23 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		errorLabel.setBounds(10, 160, 160, 25);
 		panel.add(errorLabel);
 
-		runButton = new JButton("Donwload");
+		runButton = new JButton(Constants.DOWNLOAD);
 		runButton.addActionListener(this);
 		runButton.setBounds(10, 225, 100, 25);
 		runButton.setEnabled(false);
 		panel.add(runButton);
 
-		stopButton = new JButton("Stop");
+		stopButton = new JButton(Constants.STOP);
 		stopButton.addActionListener(this);
 		stopButton.setBounds(130, 225, 100, 25);
 		panel.add(stopButton);
 
-		refreshButton = new JButton("Refresh");
+		refreshButton = new JButton(Constants.REFRESH);
 		refreshButton.addActionListener(this);
 		refreshButton.setBounds(350, 10, 100, 25);
 		panel.add(refreshButton);
 
-		clearButton = new JButton("Clear");
+		clearButton = new JButton(Constants.CLEAR);
 		clearButton.addActionListener(this);
 		clearButton.setBounds(90, 500, 100, 25);
 		panel.add(clearButton);
@@ -158,13 +159,13 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		if (e.getSource() == selectPathButton) {
 			path = choosePath();
 			if (path == null) {
-				pathLabel.setText("<html><font color='red'>Path: Invalid path</font></html>");
+				pathLabel.setText(Constants.INVALID_PATH_COLOR_RED);
 			} else {
-				pathLabel.setText("Path: " + path);
+				pathLabel.setText(Constants.PATH_LABEL + ": " + path);
 				runButton.setEnabled(true);
 			}
 		} else if (e.getSource() == runButton) {
-			stopButton.setText("Stop");
+			stopButton.setText(Constants.STOP);
 			if (noOfThreadsTextField.getText().trim().isEmpty()) {
 				setErrorLabel();
 			} else {
@@ -195,18 +196,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 					if (names.contains(files[i].getName())) {
 						FTPLogin ftpLogin = new FTPLogin(downloader.getServer(), 21);
 						ftpLogin.login(downloader.getUser(), downloader.getPassword());
-
-						// DownloadThread task = new DownloadThread(display,
-						// ftpLogin.getFtpClient(), files[i], path);
 						Worker task = new Worker(display, ftpLogin.getFtpClient(), files[i], path);
-						// collection.add(task);
-
-						// poti vedea si cu future, dar cred ca asta inseamna un
-						// singur
-						// rezultat, nu multiple, insa atunci nu ar mai trebui
-						// sa trimiti
-						// display ca parametru.
-						// executor.submit(task);
 						workerList.add(task);
 					}
 				}
@@ -214,29 +204,22 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				for (int i = 0; i < workerList.size(); i++) {
 					executor.submit(workerList.get(i));
 				}
-
-				/*
-				 * try { // display.setText(display.getText() +
-				 * 
-				 * executor.invokeAll(collection); executor.shutdown(); } catch
-				 * (Exception ex) { ex.printStackTrace(); }
-				 */
 			}
 		} else if (e.getSource() == refreshButton) {
 			initialiseCheckGroup();
 		} else if (e.getSource() == clearButton) {
 			display.setText("");
 		} else if (e.getSource() == stopButton) {
-			if (stopButton.getText().equals("Stop")) {
-				display.append("---PAUSE---" + "\n");
-				stopButton.setText("Resume");
+			if (stopButton.getText().equals(Constants.STOP)) {
+				display.append(Constants.PAUSE_MESSAGE + "\n");
+				stopButton.setText(Constants.RESUME);
 				
 				for (int i = 0; i < workerList.size(); i++) {
 					workerList.get(i).pause();
 				}
-			} else if (stopButton.getText().equals("Resume")) {
-				display.append("---RESUME---" + "\n");
-				stopButton.setText("Stop");
+			} else if (stopButton.getText().equals(Constants.RESUME)) {
+				display.append(Constants.RESUME_MESSAGE + "\n");
+				stopButton.setText(Constants.STOP);
 				
 				for (int i = 0; i < workerList.size(); i++) {
 					workerList.get(i).resume();
@@ -248,8 +231,8 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	}
 
 	private void setErrorLabel() {
-		noOfThreads = 5;
-		errorLabel.setText("<html><font color='red'>Invalid number of threads. " + "Selcted default 5.</font></html>");
+		noOfThreads = Constants.NUMBER_OF_THREADS;
+		errorLabel.setText(Constants.INVALID_NUMBER_OF_THREADS_RED);
 	}
 
 	public String choosePath() {
