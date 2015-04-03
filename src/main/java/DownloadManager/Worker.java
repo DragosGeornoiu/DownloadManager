@@ -2,9 +2,11 @@ package DownloadManager;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 
 import javax.swing.JTextArea;
 import javax.swing.SwingWorker;
@@ -87,25 +89,22 @@ public class Worker extends SwingWorker<Object, Object> {
 		File localFile = new File(to, what.getName());
 		try {
 
+			System.out.println(to);
+			System.out.println(what.getName());
 			inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(what.getName()));
 			outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
 
-			/*int read = inputStream.read();
-			while (isPaused() || read != -1) {
-				outputStream.write(read);
-				read = inputStream.read();
-			}
-			*/
-			
-
-			int read;
-			long size = what.getSize();
-			
-			while(localFile.length() <= size ) {
-				if(!isPaused() && ((read = inputStream.read()) != -1 )) {
+			int read = inputStream.read();
+			long size = 0;
+			long whatSize = what.getSize();
+			while (size < whatSize)
+				if (!isPaused() && read != -1) {
+					System.out.println("size: " + size);
+					System.out.println("whatSize: " + whatSize);
+					size += 1;
 					outputStream.write(read);
+					read = inputStream.read();
 				}
-			}
 
 			outputStream.flush();
 			outputStream.close();
@@ -115,6 +114,11 @@ public class Worker extends SwingWorker<Object, Object> {
 				ftpClient.disconnect();
 				logger.error(Constants.FILE_TRANSFER_FAILED);
 			}
+
+			/*
+			 * if (what.getSize() == localFile.length() && remainingInDirectory
+			 * == 0) { this.cancel(true); }
+			 */
 
 			if (what.getSize() == localFile.length() && remainingInDirectory == 0) {
 				this.cancel(true);
