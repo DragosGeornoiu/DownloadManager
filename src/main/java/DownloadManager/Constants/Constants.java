@@ -11,15 +11,14 @@ public class Constants {
 	public static final String NO_PATH_SELECTED = "Path: no path selected";
 	public static final String NUMBER_OF_THREADS_LABEL = "no. of threads: ";
 	public static final String DOWNLOAD = "Donwload";
-	public static final String STOP = "Stop";
+	public static final String PAUSE = "Pause";
 	public static final String REFRESH = "Refresh";
 	public static final String CLEAR = "Clear";
 	public static final String INVALID_PATH_COLOR_RED = "<html><font color='red'>Path: Invalid path</font></html>";
 	public static final String PAUSE_MESSAGE = "---PAUSE---";
-	public static final String RESUME = "Donwload";
+	public static final String RESUME = "Resume";
 	public static final String RESUME_MESSAGE = "---RESUME---";
 	public static final String INVALID_NUMBER_OF_THREADS_RED = "<html><font color='red'>Invalid number of threads. Selcted default 5.</font></html>";
-	public static final int NUMBER_OF_THREADS = 5;
 	public static final String HOSTNAME_LABEL = "hostname";
 	public static final String USER = "User";
 	public static final String PASSWORD = "Password";
@@ -28,10 +27,6 @@ public class Constants {
 	public static final String FINISHED_DOWNLOADING = "Finished downloading with file ";
 	public static final String FTPCLIENT_NOT_INIT = "ftpCliend not initialised";
 	public static final String STARTING_TO_DOWNLOAD = "Starting to download file: ";
-	public static final String FILE_TRANSFER_FILE = "File transfer failed.";
-	
-	
-	
-	
-
+	public static final String FILE_TRANSFER_FAILED = "File transfer failed.";
+	public static final int NUMBER_OF_THREADS = 5;
 }

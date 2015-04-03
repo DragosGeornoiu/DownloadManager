@@ -1,4 +1,4 @@
-package DownloadManager;
+package DownloadManager.GUI;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,6 +10,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import DownloadManager.FTPLogin;
 import DownloadManager.Constants.Constants;
 
 public class LoginGUI extends JFrame implements ActionListener {

@@ -1,4 +1,4 @@
-import DownloadManager.LoginGUI;
+import DownloadManager.GUI.LoginGUI;
 
 
 public class Main {

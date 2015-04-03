@@ -1,4 +1,4 @@
-package DownloadManager;
+package DownloadManager.GUI;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -22,6 +22,9 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.log4j.Logger;
 
+import DownloadManager.CustomCheckBoxGroup;
+import DownloadManager.FTPLogin;
+import DownloadManager.Worker;
 import DownloadManager.Constants.Constants;
 
 public class DownloadGUI extends JFrame implements ActionListener {
@@ -97,7 +100,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		runButton.setEnabled(false);
 		panel.add(runButton);
 
-		stopButton = new JButton(Constants.STOP);
+		stopButton = new JButton(Constants.PAUSE);
 		stopButton.addActionListener(this);
 		stopButton.setBounds(130, 225, 100, 25);
 		panel.add(stopButton);
@@ -165,7 +168,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				runButton.setEnabled(true);
 			}
 		} else if (e.getSource() == runButton) {
-			stopButton.setText(Constants.STOP);
+			stopButton.setText(Constants.PAUSE);
 			if (noOfThreadsTextField.getText().trim().isEmpty()) {
 				setErrorLabel();
 			} else {
@@ -210,7 +213,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		} else if (e.getSource() == clearButton) {
 			display.setText("");
 		} else if (e.getSource() == stopButton) {
-			if (stopButton.getText().equals(Constants.STOP)) {
+			if (stopButton.getText().equals(Constants.PAUSE)) {
 				display.append(Constants.PAUSE_MESSAGE + "\n");
 				stopButton.setText(Constants.RESUME);
 				
@@ -219,7 +222,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				}
 			} else if (stopButton.getText().equals(Constants.RESUME)) {
 				display.append(Constants.RESUME_MESSAGE + "\n");
-				stopButton.setText(Constants.STOP);
+				stopButton.setText(Constants.PAUSE);
 				
 				for (int i = 0; i < workerList.size(); i++) {
 					workerList.get(i).resume();

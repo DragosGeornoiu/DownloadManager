@@ -70,7 +70,7 @@ public class Worker extends SwingWorker<Object, Object> {
 					if ((localFile.length() == what.getSize())) {
 						appendMessage("File " + what.getName() + " was already downloaded.");
 					} else {
-						appendMessage("Starting to download file: " + what.getName());
+						appendMessage(Constants.STARTING_TO_DOWNLOAD + what.getName());
 						downloadSingleFile(to, what);
 					}
 				}
@@ -90,10 +90,21 @@ public class Worker extends SwingWorker<Object, Object> {
 			inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(what.getName()));
 			outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
 
-			int read = inputStream.read();
+			/*int read = inputStream.read();
 			while (isPaused() || read != -1) {
 				outputStream.write(read);
 				read = inputStream.read();
+			}
+			*/
+			
+
+			int read;
+			long size = what.getSize();
+			
+			while(localFile.length() <= size ) {
+				if(!isPaused() && ((read = inputStream.read()) != -1 )) {
+					outputStream.write(read);
+				}
 			}
 
 			outputStream.flush();
@@ -102,7 +113,7 @@ public class Worker extends SwingWorker<Object, Object> {
 			if (!ftpClient.completePendingCommand()) {
 				ftpClient.logout();
 				ftpClient.disconnect();
-				logger.error(Constants.FILE_TRANSFER_FILE);
+				logger.error(Constants.FILE_TRANSFER_FAILED);
 			}
 
 			if (what.getSize() == localFile.length() && remainingInDirectory == 0) {
