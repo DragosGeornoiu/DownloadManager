@@ -1,17 +1,12 @@
 package DownloadManager.GUI;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.LayoutManager;
 import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.List;
 
-import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -20,36 +15,35 @@ import javax.swing.Scrollable;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 
+import DownloadManager.Constants.Constants;
+
 /**
- * 
  * Initializes the table where the details of the files stored on the given hostname.
- *
  */
 public class CustomTable extends JPanel {
 	private static final long serialVersionUID = 1L;
-	private List<JCheckBox> checkBoxes;
 	private JTable table;
+	private int sizeOfElements;
 
 	public CustomTable(Object[] columns, String[] options, String[] types, String[] sizes) {
-		checkBoxes = new ArrayList<JCheckBox>(options.length);
 		setLayout(new BorderLayout());
 
 		Object columnNames[] = columns;
-		Object rowData[][] = new Object[options.length][4];
+		Object rowData[][] = new Object[options.length][5];
 
 		JPanel content = new ScrollablePane(new GridBagLayout());
 		content.setBackground(UIManager.getColor("List.background"));
 		if (options.length > 0) {
 			for (int index = 0; index <= options.length - 1; index++) {
-				JCheckBox cb = new JCheckBox(options[index]);
-				cb.setOpaque(false);
-				checkBoxes.add(cb);
-				rowData[index][0] = cb.getText();
-				rowData[index][1] = types[index];
-				rowData[index][2] = sizes[index];
-				rowData[index][3] = false;;
+				rowData[index][Constants.NAME_COLUMN_POSITION] = options[index];
+				rowData[index][Constants.TYPE_COLUMN_POSITION] = types[index];
+				rowData[index][Constants.SIZE_COLUMN_POSITION] = sizes[index];
+				rowData[index][Constants.CHECK_COLUMN_POSITION] = false;;
+				rowData[index][Constants.PROGRESS_COLUMN_POSITION] = "";
 			}
 		}
+		
+		sizeOfElements = options.length;
 		
 		// all cells aren't editable except the one where the check boxes are.
 		DefaultTableModel tableModel = new DefaultTableModel(rowData, columnNames) {
@@ -71,11 +65,13 @@ public class CustomTable extends JPanel {
 			@Override
 			public Class getColumnClass(int column) {
 				switch (column) {
-				case 0:
+				case Constants.NAME_COLUMN_POSITION:
 					return String.class;
-				case 1:
+				case Constants.TYPE_COLUMN_POSITION:
 					return String.class;
-				case 2:
+				case Constants.SIZE_COLUMN_POSITION:
+					return String.class;
+				case Constants.PROGRESS_COLUMN_POSITION:
 					return String.class;
 				default:
 					return Boolean.class;
@@ -136,15 +132,33 @@ public class CustomTable extends JPanel {
 			}
 			return track;
 		}
-
 	}
 
-	public List<JCheckBox> getCheckBoxes() {
-		return checkBoxes;
+	public int getSizeOfElements() {
+		return sizeOfElements;
 	}
 
-	public void setCheckBoxes(List<JCheckBox> checkBoxes) {
-		this.checkBoxes = checkBoxes;
+	public void setSizeOfElements(int sizeOfElements) {
+		this.sizeOfElements = sizeOfElements;
+	}
+	
+	public int getIndexWhere(String name) {
+		for(int i=0; i<sizeOfElements; i++) {
+			if(retVal(i, 0).equals(name)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	public void setTextAt(String text, int row, int column) {
+		table.setValueAt(text, row, column);
 	}
 
+	public void setAllCheckBoxes(boolean selected) {
+		for(int i=0; i<sizeOfElements; i++) {
+			table.setValueAt(selected, i, Constants.CHECK_COLUMN_POSITION);
+		}
+		
+	}
 }

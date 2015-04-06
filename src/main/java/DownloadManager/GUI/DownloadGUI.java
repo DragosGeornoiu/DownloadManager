@@ -48,6 +48,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	private JButton refreshButton;
 	private JButton clearButton;
 	private JButton pauseButton;
+	private JCheckBox allCheckBox;
 	private int noOfThreads;
 	private CustomTable customTable;
 	private FTPFile[] files;
@@ -58,7 +59,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		super("DownloadGUI");
 		this.setResizable(false);
 		this.ftpLogin = downloader;
-		this.setSize(750, 580);
+		this.setSize(820, 620);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		panel = new JPanel();
@@ -71,6 +72,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	 * Places all the components of the DownloadGUI in the panel.
 	 */
 	private void placeComponents() {
+		logger.info("Placing components on the panel.");
 		panel.setLayout(null);
 
 		JLabel hostnameLabel = new JLabel();
@@ -113,6 +115,18 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		refreshButton.addActionListener(this);
 		refreshButton.setBounds(350, 10, 100, 25);
 		panel.add(refreshButton);
+		
+		
+		allCheckBox = new JCheckBox(Constants.SELECT_ALL);
+		allCheckBox.setBounds(590, 25, 100, 25);
+		allCheckBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				customTable.setAllCheckBoxes(allCheckBox.isSelected());
+			}
+		});
+		panel.add(allCheckBox);
+		
 
 		clearButton = new JButton(Constants.CLEAR);
 		clearButton.addActionListener(this);
@@ -137,6 +151,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	 * it or not.
 	 */
 	private void initialiseTable() {
+		logger.info("Initialising the table");
 		files = new FTPFile[] {};
 		try {
 			files = getFiles();
@@ -163,7 +178,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		}
 
 		Object[] columns = { Constants.TABLE_COLUMN_NAME, Constants.TABLE_COLUMN_TYPE, Constants.TABLE_COLUMN_SIZE,
-				Constants.TABLE_COLUMN_CHECK };
+				Constants.TABLE_COLUMN_CHECK, Constants.TABLE_COLUMN_PROGRESS };
 		
 		customTable = new CustomTable(columns, names, types, sizes);
 		customTable.setBounds(300, 50, 450, 500);
@@ -190,6 +205,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == selectPathButton) {
+			logger.info("Path button was pressed");
 			// allows the user to select the path
 			path = choosePath();
 			if (path == null) {
@@ -199,6 +215,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				runButton.setEnabled(true);
 			}
 		} else if (e.getSource() == runButton) {
+			logger.info("Download button was pressed.");
 			// The download of the selected files starts.
 			pauseButton.setText(Constants.PAUSE);
 			if (noOfThreadsTextField.getText().trim().isEmpty()) {
@@ -218,38 +235,44 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			} else {
 
 				List<String> names = new ArrayList<String>();
-				List<JCheckBox> checkBoxes = customTable.getCheckBoxes();
+				//List<JCheckBox> checkBoxes = customTable.getCheckBoxes();
 
-				for (int i = 0; i < checkBoxes.size(); i++) {
+				for (int i = 0; i < customTable.getSizeOfElements(); i++) {
 					if ((Boolean) customTable.retVal(i, 3) == true) {
 						names.add((String) customTable.retVal(i, 0));
 					}
 				}
-				workerManager = new ThreadManager(display, noOfThreads, names, files, ftpLogin, path);
+				workerManager = new ThreadManager(customTable, display, noOfThreads, names, files, ftpLogin, path);
 				workerManager.init();
 			}
 		} else if (e.getSource() == refreshButton) {
+			logger.info("Refesh button was pressed.");
 			// refreshes the table of data to be downloaded, a new file might of
 			// been added there and we shouldn't have to close the application
 			// to see it.
 			initialiseTable();
+			allCheckBox.setSelected(false);
 		} else if (e.getSource() == clearButton) {
+			logger.info("Clear button was pressed.");
 			// cleares the display textArea.
 			display.setText("");
 		} else if (e.getSource() == pauseButton) {
+			
 			// pauses the download.
 			if (pauseButton.getText().equals(Constants.PAUSE)) {
+				logger.info("Pause button was pressed.");
 				display.append(Constants.PAUSE_MESSAGE + "\n");
 				pauseButton.setText(Constants.RESUME);
 				workerManager.pause();
 
 				// resumes the download.
 			} else if (pauseButton.getText().equals(Constants.RESUME)) {
+				logger.info("Resume button was pressed.");
 				display.append(Constants.RESUME_MESSAGE + "\n");
 				pauseButton.setText(Constants.PAUSE);
 				workerManager.resume();
 			}
-		}
+		} 
 
 	}
 
@@ -259,7 +282,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	 * the error label, the user is informed of that.
 	 */
 	private void setErrorLabel() {
-		noOfThreads = Constants.NUMBER_OF_THREADS;
+		noOfThreads = Constants.DEFAULT_NUMBER_OF_THREADS;
 		noOfThreadsTextField.setText(Integer.toString(noOfThreads));
 		errorLabel.setText(Constants.INVALID_NUMBER_OF_THREADS_RED);
 	}

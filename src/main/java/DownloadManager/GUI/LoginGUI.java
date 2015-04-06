@@ -10,6 +10,8 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import org.apache.log4j.Logger;
+
 import DownloadManager.FTPLogin;
 import DownloadManager.Constants.Constants;
 
@@ -20,6 +22,7 @@ import DownloadManager.Constants.Constants;
  * 
  */
 public class LoginGUI extends JFrame implements ActionListener {
+	final static Logger logger = Logger.getLogger(LoginGUI.class);
 	private static final long serialVersionUID = 1L;
 
 	private JTextField hostnameText;
@@ -96,11 +99,13 @@ public class LoginGUI extends JFrame implements ActionListener {
 	 * user, using the errorLabel, that the login was not succesfull.
 	 */
 	public void actionPerformed(ActionEvent e) {
+		logger.info("Login button was pressed"); 
 		ftpLogin = new FTPLogin(hostnameText.getText(), 21);
 		if (ftpLogin.login(userText.getText(), new String(passwordText.getPassword()))) {
 			this.setEnabled(false);
 			new DownloadGUI(ftpLogin);
 		} else {
+			logger.error("Login not succesfull");
 			errorLabel.setText(Constants.LOGIN_NOT_SUCCESSFULL);
 		}
 

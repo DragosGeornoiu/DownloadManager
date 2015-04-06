@@ -33,6 +33,7 @@ public class FTPLogin {
 	 * @return true if the login was successful, false otherwise. 
 	 */
 	public boolean login(String user, String password) {
+		logger.info("Trying to log in as user: " + user +" and password: " +password);
 		this.user = user;
 		this.password = password;
 		ftpClient = new FTPClient();

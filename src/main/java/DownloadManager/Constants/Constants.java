@@ -1,5 +1,6 @@
 package DownloadManager.Constants;
 
+
 public class Constants {
 
 	private Constants() {
@@ -23,7 +24,7 @@ public class Constants {
 	public static final String USER = "User";
 	public static final String LOGIN_BUTTON = "login";
 	public static final String LOGIN_NOT_SUCCESSFULL = "<html><font color='red'>The credentials didn't check out</font></html>";
-	public static final String FINISHED_DOWNLOADING = "Finished downloading with file ";
+	public static final String FINISHED_DOWNLOADING = "Finished downloading ";
 	public static final String FTPCLIENT_NOT_INIT = "ftpCliend not initialised";
 	public static final String STARTING_TO_DOWNLOAD = "Starting to download file: ";
 	public static final String FILE_TRANSFER_FAILED = "File transfer failed.";
@@ -33,6 +34,16 @@ public class Constants {
 	public static final String TABLE_COLUMN_TYPE = "Type";
 	public static final String TABLE_COLUMN_SIZE = "Size";
 	public static final String TABLE_COLUMN_CHECK = "Check";
+	public static final String TABLE_COLUMN_PROGRESS = "Progress";
+	public static final String FILE_ALREADY_DOWNLOADED = "file was already downloaded.";
+	public static final String FINISHED_DOWNLOADING_DIRECTORY = "Finished downloading directory ";
+	public static final String CHECK_ALL = "Check all";
+	public static final String STARTING_DOWNLOAD = "Starting download of selected files";
 	
-	public static final int NUMBER_OF_THREADS = 5;
+	public static final int DEFAULT_NUMBER_OF_THREADS = 5;
+	public static final int NAME_COLUMN_POSITION = 0;
+	public static final int TYPE_COLUMN_POSITION = 1;
+	public static final int SIZE_COLUMN_POSITION = 2;
+	public static final int CHECK_COLUMN_POSITION = 3;
+	public static final int PROGRESS_COLUMN_POSITION = 4;
 }

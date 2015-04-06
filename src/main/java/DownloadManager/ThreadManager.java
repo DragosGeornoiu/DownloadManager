@@ -8,6 +8,10 @@ import java.util.concurrent.Executors;
 import javax.swing.JTextArea;
 
 import org.apache.commons.net.ftp.FTPFile;
+import org.apache.log4j.Logger;
+
+import DownloadManager.Constants.Constants;
+import DownloadManager.GUI.CustomTable;
 
 /**
  *
@@ -15,6 +19,8 @@ import org.apache.commons.net.ftp.FTPFile;
  *
  */
 public class ThreadManager {
+	final static Logger logger = Logger.getLogger(ThreadManager.class);
+	
 	private JTextArea display;
 	private int noOfWorkers;
 	private List<DownloadThread> threadList;
@@ -22,10 +28,12 @@ public class ThreadManager {
 	private FTPFile[] files;
 	private List<String> names;
 	private FTPLogin downloader;
+	private CustomTable customTable;
 	private String path;
 
-	public ThreadManager(JTextArea display, int noOfThreads, List<String> names, FTPFile[] files, FTPLogin downloader,
+	public ThreadManager(CustomTable customTable, JTextArea display, int noOfThreads, List<String> names, FTPFile[] files, FTPLogin downloader,
 			String path) {
+		this.customTable = customTable;
 		this.display = display;
 		this.noOfWorkers = noOfThreads;
 		this.files = files;
@@ -40,6 +48,7 @@ public class ThreadManager {
 	 * downloaded on a thread (if the thread pool allows it)
 	 */
 	public void init() {
+		logger.info(Constants.STARTING_DOWNLOAD);
 		threadList = new ArrayList<DownloadThread>();
 
 		executor = Executors.newFixedThreadPool(noOfWorkers);
@@ -49,7 +58,8 @@ public class ThreadManager {
 				FTPLogin ftpLogin = new FTPLogin(downloader.getServer(), 21);
 				ftpLogin.login(downloader.getUser(), downloader.getPassword());
 
-				threadList.add(new DownloadThread(display, ftpLogin.getFtpClient(), files[i], path));
+				ThreadToGUI displayer = new ThreadToGUI(display, customTable);
+				threadList.add(new DownloadThread(displayer, ftpLogin.getFtpClient(), files[i], path));
 			}
 		}
 
