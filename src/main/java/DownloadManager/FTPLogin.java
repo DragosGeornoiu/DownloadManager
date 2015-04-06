@@ -6,6 +6,10 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 import org.apache.log4j.Logger;
 
+/**
+ * Does the logic for the LoginGUI class: checks if the credentials inserted by
+ * the user are valid or not.
+ */
 public class FTPLogin {
 	final static Logger logger = Logger.getLogger(FTPLogin.class);
 
@@ -14,13 +18,20 @@ public class FTPLogin {
 	private int port;
 	private String user;
 	private String password;
-	
 
 	public FTPLogin(String server, int port) {
 		this.server = server;
 		this.port = port;
 	}
 
+	/**
+	 * Tries to log in using the credentials given as parameters in the
+	 * constructor and the login(String, String) method.
+	 * 
+	 * @param user String representing the username of the user.
+	 * @param password String representing the password of the user.
+	 * @return true if the login was successful, false otherwise. 
+	 */
 	public boolean login(String user, String password) {
 		this.user = user;
 		this.password = password;
@@ -79,6 +90,5 @@ public class FTPLogin {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	
-	
+
 }

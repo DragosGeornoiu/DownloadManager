@@ -5,8 +5,6 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -18,21 +16,27 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.log4j.Logger;
 
-import DownloadManager.CustomCheckBoxGroup;
 import DownloadManager.FTPLogin;
-import DownloadManager.Worker;
+import DownloadManager.ThreadManager;
 import DownloadManager.Constants.Constants;
+
+/**
+ * 
+ * DownloadGUI represents the user interface where he can select what to
+ * download, where to download it and on how many threads to download.
+ *
+ */
 
 public class DownloadGUI extends JFrame implements ActionListener {
 	final static Logger logger = Logger.getLogger(DownloadGUI.class);
 	private static final long serialVersionUID = 1L;
 
-	private FTPLogin downloader;
-
+	private FTPLogin ftpLogin;
 	private JScrollPane scroll;
 	private JTextArea display;
 	private JButton selectPathButton;
@@ -43,29 +47,29 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	private JButton runButton;
 	private JButton refreshButton;
 	private JButton clearButton;
-	private JButton stopButton;
+	private JButton pauseButton;
 	private int noOfThreads;
-	private CustomCheckBoxGroup checkboxgroup;
+	private CustomTable customTable;
 	private FTPFile[] files;
 	private JPanel panel;
-	private ExecutorService executor;
-	List<Worker> workerList;
+	private ThreadManager workerManager;
 
 	public DownloadGUI(FTPLogin downloader) {
 		super("DownloadGUI");
 		this.setResizable(false);
-		this.downloader = downloader;
-		this.setSize(600, 580);
+		this.ftpLogin = downloader;
+		this.setSize(750, 580);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		panel = new JPanel();
 		this.add(panel);
 		placeComponents();
-
 		this.setVisible(true);
-
 	}
 
+	/**
+	 * Places all the components of the DownloadGUI in the panel.
+	 */
 	private void placeComponents() {
 		panel.setLayout(null);
 
@@ -100,10 +104,10 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		runButton.setEnabled(false);
 		panel.add(runButton);
 
-		stopButton = new JButton(Constants.PAUSE);
-		stopButton.addActionListener(this);
-		stopButton.setBounds(130, 225, 100, 25);
-		panel.add(stopButton);
+		pauseButton = new JButton(Constants.PAUSE);
+		pauseButton.addActionListener(this);
+		pauseButton.setBounds(130, 225, 100, 25);
+		panel.add(pauseButton);
 
 		refreshButton = new JButton(Constants.REFRESH);
 		refreshButton.addActionListener(this);
@@ -123,10 +127,16 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		scroll.setBounds(10, 260, 270, 230);
 		panel.add(scroll);
 
-		initialiseCheckGroup();
+		initialiseTable();
 	}
 
-	private void initialiseCheckGroup() {
+	/**
+	 * Initializes the table with the files hosted in the given hostname from
+	 * the LoginGUI. It gives some details about each one: name, type (directory
+	 * or not), size and a column of checkBoxes to check if you want to download
+	 * it or not.
+	 */
+	private void initialiseTable() {
 		files = new FTPFile[] {};
 		try {
 			files = getFiles();
@@ -135,31 +145,52 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		}
 
 		String[] names = new String[files.length];
+		String[] types = new String[files.length];
+		String[] sizes = new String[files.length];
 		for (int i = 0; i < files.length; i++) {
 			names[i] = files[i].getName();
+			if (files[i].isDirectory()) {
+				types[i] = Constants.DIRECTORY;
+				sizes[i] = "[" + FileUtils.byteCountToDisplaySize(directorySize(files[i])) + "]";
+			} else {
+				types[i] = " - ";
+				sizes[i] = "[" + FileUtils.byteCountToDisplaySize(files[i].getSize()) + "]";
+			}
 		}
 
-		if (checkboxgroup != null) {
-			panel.remove(checkboxgroup);
+		if (customTable != null) {
+			panel.remove(customTable);
 		}
 
-		checkboxgroup = new CustomCheckBoxGroup(names);
-		checkboxgroup.setBounds(300, 50, 250, 500);
+		Object[] columns = { Constants.TABLE_COLUMN_NAME, Constants.TABLE_COLUMN_TYPE, Constants.TABLE_COLUMN_SIZE,
+				Constants.TABLE_COLUMN_CHECK };
+		
+		customTable = new CustomTable(columns, names, types, sizes);
+		customTable.setBounds(300, 50, 450, 500);
 
 		panel.revalidate();
 		panel.repaint();
-		panel.add(checkboxgroup);
+		panel.add(customTable);
 
 	}
 
+	/**
+	 * Returns all files from the hostname where the user has access.
+	 * 
+	 * @return the files as a FTPFile array.
+	 * @throws IOException
+	 *             if an I/O error occurs while either sending a command to the
+	 *             server or receiving a reply from the server.
+	 */
 	private FTPFile[] getFiles() throws IOException {
-		downloader.setFtpClient(new FTPClient());
-		downloader.login(downloader.getUser(), downloader.getPassword());
-		return downloader.getFtpClient().listFiles();
+		ftpLogin.setFtpClient(new FTPClient());
+		ftpLogin.login(ftpLogin.getUser(), ftpLogin.getPassword());
+		return ftpLogin.getFtpClient().listFiles();
 	}
 
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == selectPathButton) {
+			// allows the user to select the path
 			path = choosePath();
 			if (path == null) {
 				pathLabel.setText(Constants.INVALID_PATH_COLOR_RED);
@@ -168,7 +199,8 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				runButton.setEnabled(true);
 			}
 		} else if (e.getSource() == runButton) {
-			stopButton.setText(Constants.PAUSE);
+			// The download of the selected files starts.
+			pauseButton.setText(Constants.PAUSE);
 			if (noOfThreadsTextField.getText().trim().isEmpty()) {
 				setErrorLabel();
 			} else {
@@ -184,64 +216,64 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			if (noOfThreads <= 0) {
 				setErrorLabel();
 			} else {
-				workerList = new ArrayList<Worker>();
 
 				List<String> names = new ArrayList<String>();
-				List<JCheckBox> checkBoxes = checkboxgroup.getCheckBoxes();
+				List<JCheckBox> checkBoxes = customTable.getCheckBoxes();
+
 				for (int i = 0; i < checkBoxes.size(); i++) {
-					if (checkBoxes.get(i).isSelected()) {
-						names.add(checkBoxes.get(i).getText());
+					if ((Boolean) customTable.retVal(i, 3) == true) {
+						names.add((String) customTable.retVal(i, 0));
 					}
 				}
-
-				executor = Executors.newFixedThreadPool(noOfThreads);
-				for (int i = 0; i < files.length; i++) {
-					if (names.contains(files[i].getName())) {
-						FTPLogin ftpLogin = new FTPLogin(downloader.getServer(), 21);
-						ftpLogin.login(downloader.getUser(), downloader.getPassword());
-						Worker task = new Worker(display, ftpLogin.getFtpClient(), files[i], path);
-						workerList.add(task);
-					}
-				}
-
-				for (int i = 0; i < workerList.size(); i++) {
-					executor.submit(workerList.get(i));
-				}
+				workerManager = new ThreadManager(display, noOfThreads, names, files, ftpLogin, path);
+				workerManager.init();
 			}
 		} else if (e.getSource() == refreshButton) {
-			initialiseCheckGroup();
+			// refreshes the table of data to be downloaded, a new file might of
+			// been added there and we shouldn't have to close the application
+			// to see it.
+			initialiseTable();
 		} else if (e.getSource() == clearButton) {
+			// cleares the display textArea.
 			display.setText("");
-		} else if (e.getSource() == stopButton) {
-			if (stopButton.getText().equals(Constants.PAUSE)) {
+		} else if (e.getSource() == pauseButton) {
+			// pauses the download.
+			if (pauseButton.getText().equals(Constants.PAUSE)) {
 				display.append(Constants.PAUSE_MESSAGE + "\n");
-				stopButton.setText(Constants.RESUME);
-				
-				for (int i = 0; i < workerList.size(); i++) {
-					workerList.get(i).pause();
-				}
-			} else if (stopButton.getText().equals(Constants.RESUME)) {
-				display.append(Constants.RESUME_MESSAGE + "\n");
-				stopButton.setText(Constants.PAUSE);
-				
-				for (int i = 0; i < workerList.size(); i++) {
-					workerList.get(i).resume();
-				}
-			}
+				pauseButton.setText(Constants.RESUME);
+				workerManager.pause();
 
+				// resumes the download.
+			} else if (pauseButton.getText().equals(Constants.RESUME)) {
+				display.append(Constants.RESUME_MESSAGE + "\n");
+				pauseButton.setText(Constants.PAUSE);
+				workerManager.resume();
+			}
 		}
 
 	}
 
+	/**
+	 * The user hasn't picked or inserted an invalid number of threads to be
+	 * used, so the number of threads is set to a default value of 5 and using
+	 * the error label, the user is informed of that.
+	 */
 	private void setErrorLabel() {
 		noOfThreads = Constants.NUMBER_OF_THREADS;
+		noOfThreadsTextField.setText(Integer.toString(noOfThreads));
 		errorLabel.setText(Constants.INVALID_NUMBER_OF_THREADS_RED);
 	}
 
+	/**
+	 * The file chooser is set up for the user to select the directory to
+	 * download to.
+	 * 
+	 * @return the path where to download, selected by the user.
+	 */
 	public String choosePath() {
 		JFileChooser chooser = new JFileChooser();
 		chooser.setCurrentDirectory(new java.io.File("."));
-		chooser.setDialogTitle("choosertitle");
+		chooser.setDialogTitle("Select a directory");
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		chooser.setAcceptAllFileFilterUsed(false);
 
@@ -250,6 +282,34 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		} else {
 			return null;
 		}
+	}
+
+	/**
+	 * Calculates the size of a directory.
+	 * 
+	 * @param files2
+	 *            the file representing a directory. It has been checked with
+	 *            isDirectory() already.
+	 * @return the size of the directory.
+	 */
+	public long directorySize(FTPFile files2) {
+		long length = 0;
+
+		try {
+			ftpLogin.getFtpClient().changeWorkingDirectory(files2.getName());
+			for (FTPFile file : ftpLogin.getFtpClient().listFiles()) {
+				if (file.isFile()) {
+					length += file.getSize();
+				} else {
+					ftpLogin.getFtpClient().changeWorkingDirectory(file.getName());
+					length += directorySize(file);
+					ftpLogin.getFtpClient().changeToParentDirectory();
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Error");
+		}
+		return length;
 	}
 
 }

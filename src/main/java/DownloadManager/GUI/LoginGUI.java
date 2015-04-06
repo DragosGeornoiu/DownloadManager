@@ -13,6 +13,12 @@ import javax.swing.JTextField;
 import DownloadManager.FTPLogin;
 import DownloadManager.Constants.Constants;
 
+/**
+ * 
+ * Initialises the login swing form where the user has to insert the hostname,
+ * the username and the password.
+ * 
+ */
 public class LoginGUI extends JFrame implements ActionListener {
 	private static final long serialVersionUID = 1L;
 
@@ -20,10 +26,10 @@ public class LoginGUI extends JFrame implements ActionListener {
 	private JTextField userText;
 	private JPasswordField passwordText;
 	private JLabel errorLabel;
-	private FTPLogin downloader; 
-	
+	private FTPLogin ftpLogin;
+
 	public LoginGUI() {
-		super("LoginGUI");
+		super("Login");
 		this.setResizable(false);
 		this.setSize(300, 350);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -35,8 +41,14 @@ public class LoginGUI extends JFrame implements ActionListener {
 		this.setVisible(true);
 	}
 
+	/**
+	 * Places all the components of the LoginGUI in the panel given as
+	 * parameter.
+	 * 
+	 * @param panel
+	 *            where the components are placed on / added to.
+	 */
 	private void placeComponents(JPanel panel) {
-
 		panel.setLayout(null);
 
 		JLabel hostnameLabel = new JLabel(Constants.HOSTNAME_LABEL);
@@ -55,7 +67,7 @@ public class LoginGUI extends JFrame implements ActionListener {
 		userText.setBounds(100, 40, 160, 25);
 		panel.add(userText);
 
-		JLabel passwordLabel = new JLabel();
+		JLabel passwordLabel = new JLabel(Constants.PASSWORD_LABEL);
 		passwordLabel.setBounds(10, 70, 80, 25);
 		panel.add(passwordLabel);
 
@@ -72,21 +84,25 @@ public class LoginGUI extends JFrame implements ActionListener {
 		errorLabel = new JLabel("");
 		errorLabel.setBounds(10, 130, 160, 25);
 		panel.add(errorLabel);
-		
+
 		hostnameText.setText("localhost");
 		userText.setText("user");
 		passwordText.setText("password");
 	}
 
+	/**
+	 * The action when the user presses the loginButton. If the credentials are
+	 * correct, it launches the DownloadGUI interface, otherwise it tells the
+	 * user, using the errorLabel, that the login was not succesfull.
+	 */
 	public void actionPerformed(ActionEvent e) {
-		downloader = new FTPLogin(hostnameText.getText(), 21);
-		if(downloader.login(userText.getText(), new String(passwordText.getPassword()))) {
+		ftpLogin = new FTPLogin(hostnameText.getText(), 21);
+		if (ftpLogin.login(userText.getText(), new String(passwordText.getPassword()))) {
 			this.setEnabled(false);
-			new DownloadGUI(downloader);
+			new DownloadGUI(ftpLogin);
 		} else {
 			errorLabel.setText(Constants.LOGIN_NOT_SUCCESSFULL);
 		}
-		
 
 	}
 

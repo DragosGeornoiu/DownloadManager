@@ -1,8 +1,7 @@
 import DownloadManager.GUI.LoginGUI;
 
 
-public class Main {
-
+public class DownloadManager {
 	public static void main(String[] args) {
 		new LoginGUI();
 	}
