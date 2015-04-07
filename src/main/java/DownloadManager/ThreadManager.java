@@ -3,7 +3,6 @@ package DownloadManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.swing.JTextArea;
 
@@ -12,6 +11,7 @@ import org.apache.log4j.Logger;
 
 import DownloadManager.Constants.Constants;
 import DownloadManager.GUI.CustomTable;
+import ThreadPool.ThreadPool;
 
 /**
  *
@@ -24,12 +24,13 @@ public class ThreadManager {
 	private JTextArea display;
 	private int noOfWorkers;
 	private List<DownloadThread> threadList;
-	private ExecutorService executor;
+	//private ExecutorService executor;
 	private FTPFile[] files;
 	private List<String> names;
 	private FTPLogin downloader;
 	private CustomTable customTable;
 	private String path;
+	private ThreadPool threadPool;
 
 	public ThreadManager(CustomTable customTable, JTextArea display, int noOfThreads, List<String> names, FTPFile[] files, FTPLogin downloader,
 			String path) {
@@ -51,7 +52,7 @@ public class ThreadManager {
 		logger.info(Constants.STARTING_DOWNLOAD);
 		threadList = new ArrayList<DownloadThread>();
 
-		executor = Executors.newFixedThreadPool(noOfWorkers);
+		//executor = Executors.newFixedThreadPool(noOfWorkers);
 
 		for (int i = 0; i < files.length; i++) {
 			if (names.contains(files[i].getName())) {
@@ -63,8 +64,15 @@ public class ThreadManager {
 			}
 		}
 
+		
+		threadPool = new ThreadPool(noOfWorkers);
 		for (int i = 0; i < threadList.size(); i++) {
-			executor.execute(threadList.get(i));
+			try {
+			threadPool.execute(threadList.get(i));
+			} catch(Exception e) {
+				logger.error(e.getMessage());
+			}
+			//executor.execute(threadList.get(i));
 		}
 
 	}

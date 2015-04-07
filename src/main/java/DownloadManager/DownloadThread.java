@@ -35,6 +35,8 @@ public class DownloadThread implements Runnable {
 		this.remoteFile = file;
 		this.downloadTo = downloadTo;
 	}
+	
+	
 
 	public void run() {
 		download(downloadTo, remoteFile, "");
@@ -69,7 +71,7 @@ public class DownloadThread implements Runnable {
 					if ((localFile.length() == file.getSize())) {
 						int index = displayer.getIndexWhere(file.getName());
 						if (index != -1) {
-							displayer.appendToProgress("---", index);
+							displayer.appendToProgress("100% already", index);
 							displayer.appendToTextArea( file.getName() + Constants.FILE_ALREADY_DOWNLOADED);
 						}
 					} else {
@@ -169,7 +171,7 @@ public class DownloadThread implements Runnable {
 				logger.error("Error: " + se.getMessage());
 			}
 		}
-
+		
 		try {
 			boolean check = ftpClient.changeWorkingDirectory(path + "/" + file.getName());
 
@@ -252,6 +254,8 @@ public class DownloadThread implements Runnable {
 	void suspend() {
 		suspended = true;
 	}
+	
+	
 
 	/**
 	 * Resumes the download.
