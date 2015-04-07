@@ -115,8 +115,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		refreshButton.addActionListener(this);
 		refreshButton.setBounds(350, 10, 100, 25);
 		panel.add(refreshButton);
-		
-		
+
 		allCheckBox = new JCheckBox(Constants.SELECT_ALL);
 		allCheckBox.setBounds(590, 25, 100, 25);
 		allCheckBox.addActionListener(new ActionListener() {
@@ -126,7 +125,6 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			}
 		});
 		panel.add(allCheckBox);
-		
 
 		clearButton = new JButton(Constants.CLEAR);
 		clearButton.addActionListener(this);
@@ -179,7 +177,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 
 		Object[] columns = { Constants.TABLE_COLUMN_NAME, Constants.TABLE_COLUMN_TYPE, Constants.TABLE_COLUMN_SIZE,
 				Constants.TABLE_COLUMN_CHECK, Constants.TABLE_COLUMN_PROGRESS };
-		
+
 		customTable = new CustomTable(columns, names, types, sizes);
 		customTable.setBounds(300, 50, 450, 500);
 
@@ -235,15 +233,21 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			} else {
 
 				List<String> names = new ArrayList<String>();
-				//List<JCheckBox> checkBoxes = customTable.getCheckBoxes();
+				// List<JCheckBox> checkBoxes = customTable.getCheckBoxes();
 
 				for (int i = 0; i < customTable.getSizeOfElements(); i++) {
 					if ((Boolean) customTable.retVal(i, 3) == true) {
 						names.add((String) customTable.retVal(i, 0));
 					}
 				}
-				workerManager = new ThreadManager(customTable, display, noOfThreads, names, files, ftpLogin, path);
-				workerManager.init();
+				
+				//nu ar trebui sa fac o noua instanta a threadManager la fiecare download, ci sa o folosesc pe cea precedenta
+				if (workerManager == null) {
+					workerManager = new ThreadManager(customTable, display, noOfThreads, names, files, ftpLogin, path);
+					workerManager.init();
+				} else {
+					workerManager.update(customTable, display, noOfThreads, names, files, ftpLogin, path);
+				}
 			}
 		} else if (e.getSource() == refreshButton) {
 			logger.info("Refesh button was pressed.");
@@ -257,7 +261,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			// cleares the display textArea.
 			display.setText("");
 		} else if (e.getSource() == pauseButton) {
-			
+
 			// pauses the download.
 			if (pauseButton.getText().equals(Constants.PAUSE)) {
 				logger.info("Pause button was pressed.");
@@ -272,7 +276,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				pauseButton.setText(Constants.PAUSE);
 				workerManager.resume();
 			}
-		} 
+		}
 
 	}
 

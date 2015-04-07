@@ -35,8 +35,6 @@ public class DownloadThread implements Runnable {
 		this.remoteFile = file;
 		this.downloadTo = downloadTo;
 	}
-	
-	
 
 	public void run() {
 		download(downloadTo, remoteFile, "");
@@ -75,7 +73,7 @@ public class DownloadThread implements Runnable {
 							displayer.appendToTextArea( file.getName() + Constants.FILE_ALREADY_DOWNLOADED);
 						}
 					} else {
-						displayer.appendToTextArea(Constants.STARTING_TO_DOWNLOAD + file.getName());
+						displayer.appendToTextArea(Constants.STARTING_TO_DOWNLOAD + path + "/" + file.getName());
 						downloadSingleFile(to, file, path);
 					}
 				}
@@ -105,7 +103,7 @@ public class DownloadThread implements Runnable {
 
 			inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(file.getName()));
 			outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
-
+			// citesti 1024
 			int read = inputStream.read();
 			long size = 0;
 			long whatSize = file.getSize();
@@ -122,7 +120,7 @@ public class DownloadThread implements Runnable {
 						if (index != -1) {
 							displayer.appendToProgress(alreadyDownloaded + "%", index);
 						}
-						Thread.sleep(100);
+						//Thread.sleep(100);
 					}
 				}
 
@@ -143,7 +141,7 @@ public class DownloadThread implements Runnable {
 			}
 
 			if (file.getSize() == localFile.length() && remainingInDirectory == 0) {
-				displayer.appendToTextArea(Constants.FINISHED_DOWNLOADING + path + "\\" + file.getName());
+				displayer.appendToTextArea(Constants.FINISHED_DOWNLOADING + path + "//" + file.getName());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -202,7 +200,7 @@ public class DownloadThread implements Runnable {
 			ftpClient.changeToParentDirectory();
 
 			if (ftpClient.printWorkingDirectory().equals("/")) {
-				displayer.appendToTextArea(Constants.FINISHED_DOWNLOADING_DIRECTORY + file.getName());
+				displayer.appendToTextArea(Constants.FINISHED_DOWNLOADING_DIRECTORY + path + "/" + file.getName());
 			}
 		} catch (IOException e) {
 			logger.error("Error: " + e.getMessage());
@@ -251,16 +249,14 @@ public class DownloadThread implements Runnable {
 	/**
 	 * Pauses the thread, suspending the download.
 	 */
-	void suspend() {
+	public void suspend() {
 		suspended = true;
 	}
-	
-	
 
 	/**
 	 * Resumes the download.
 	 */
-	synchronized void resume() {
+	public synchronized void resume() {
 		suspended = false;
 		notify();
 	}

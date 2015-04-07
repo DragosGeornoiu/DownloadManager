@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 
 import DownloadManager.Constants.Constants;
 import DownloadManager.GUI.CustomTable;
-import ThreadPool.ThreadPool;
+import DownloadManager.ThreadPool.ThreadPool;
 
 /**
  *
@@ -20,11 +20,11 @@ import ThreadPool.ThreadPool;
  */
 public class ThreadManager {
 	final static Logger logger = Logger.getLogger(ThreadManager.class);
-	
+
 	private JTextArea display;
 	private int noOfWorkers;
 	private List<DownloadThread> threadList;
-	//private ExecutorService executor;
+	// private ExecutorService executor;
 	private FTPFile[] files;
 	private List<String> names;
 	private FTPLogin downloader;
@@ -32,8 +32,8 @@ public class ThreadManager {
 	private String path;
 	private ThreadPool threadPool;
 
-	public ThreadManager(CustomTable customTable, JTextArea display, int noOfThreads, List<String> names, FTPFile[] files, FTPLogin downloader,
-			String path) {
+	public ThreadManager(CustomTable customTable, JTextArea display, int noOfThreads, List<String> names,
+			FTPFile[] files, FTPLogin downloader, String path) {
 		this.customTable = customTable;
 		this.display = display;
 		this.noOfWorkers = noOfThreads;
@@ -52,7 +52,7 @@ public class ThreadManager {
 		logger.info(Constants.STARTING_DOWNLOAD);
 		threadList = new ArrayList<DownloadThread>();
 
-		//executor = Executors.newFixedThreadPool(noOfWorkers);
+		// executor = Executors.newFixedThreadPool(noOfWorkers);
 
 		for (int i = 0; i < files.length; i++) {
 			if (names.contains(files[i].getName())) {
@@ -64,15 +64,20 @@ public class ThreadManager {
 			}
 		}
 
-		
-		threadPool = new ThreadPool(noOfWorkers);
+		if (threadPool == null) {
+			threadPool = new ThreadPool(noOfWorkers);
+		} else {
+			threadPool.setNoOfThreads(noOfWorkers);
+		}
+
 		for (int i = 0; i < threadList.size(); i++) {
 			try {
-			threadPool.execute(threadList.get(i));
-			} catch(Exception e) {
+				threadPool.execute(threadList.get(i));
+			} catch (Exception e) {
 				logger.error(e.getMessage());
+				e.printStackTrace();
 			}
-			//executor.execute(threadList.get(i));
+			// executor.execute(threadList.get(i));
 		}
 
 	}
@@ -93,6 +98,20 @@ public class ThreadManager {
 		for (int i = 0; i < threadList.size(); i++) {
 			threadList.get(i).resume();
 		}
+	}
+
+	public void update(CustomTable customTable, JTextArea display, int noOfThreads, List<String> names,
+			FTPFile[] files, FTPLogin downloader, String path) {
+		this.customTable = customTable;
+		this.display = display;
+		this.noOfWorkers = noOfThreads;
+		this.files = files;
+		this.names = names;
+		this.downloader = downloader;
+		this.path = path;
+		
+		init();
+
 	}
 
 }
