@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import javax.swing.SwingUtilities;
+
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.log4j.Logger;
@@ -72,7 +74,6 @@ public class DownloadThread implements Runnable {
 							displayer.appendToTextArea(file.getName() + Constants.FILE_ALREADY_DOWNLOADED);
 						}
 					} else {
-						displayer.appendToTextArea(Constants.STARTING_TO_DOWNLOAD + path + "/" + file.getName());
 						downloadSingleFile(to, file, path);
 					}
 				}
@@ -98,6 +99,11 @@ public class DownloadThread implements Runnable {
 		BufferedInputStream inputStream = null;
 		BufferedOutputStream outputStream = null;
 		File localFile = new File(to, file.getName());
+
+		if (remainingInDirectory == 0) {
+			displayer.appendToTextArea(Constants.STARTING_TO_DOWNLOAD + path + "/" + file.getName());
+		}
+
 		try {
 
 			inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(file.getName()));
@@ -106,18 +112,24 @@ public class DownloadThread implements Runnable {
 			int read;
 			long size = 0;
 			long whatSize = file.getSize();
-			byte[] data = new byte[1024];
+			byte[] data = new byte[Constants.KBYTE];
 			while (size < whatSize) {
 				read = inputStream.read(data);
 				if (read != -1) {
 					size += read;
 					outputStream.write(data, 0, read);
-					//outputStream.write(data);
+					// outputStream.write(data);
 					if (size * 100 / whatSize > alreadyDownloaded) {
 						alreadyDownloaded = (int) (size * 100 / whatSize);
-						int index = displayer.getIndexWhere(file.getName());
+						final int index = displayer.getIndexWhere(file.getName());
 						if (index != -1) {
-							displayer.appendToProgress(alreadyDownloaded + "%", index);
+							
+							SwingUtilities.invokeLater(new Runnable() {
+							    public void run() {
+							    	displayer.appendToProgress(alreadyDownloaded + "%", index);
+							    }
+							});
+							
 						}
 						// Thread.sleep(100);
 					}
@@ -170,6 +182,9 @@ public class DownloadThread implements Runnable {
 		}
 
 		try {
+			if (ftpClient.printWorkingDirectory().equals("/" + file.getName())) {
+				displayer.appendToTextArea(Constants.STARTING_DOWNLOAD_OF_DIRECTORY + path + "/" + file.getName());
+			}
 			boolean check = ftpClient.changeWorkingDirectory(path + "/" + file.getName());
 
 			if (check) {

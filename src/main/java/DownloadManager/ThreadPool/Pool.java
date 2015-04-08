@@ -4,23 +4,26 @@ import java.util.concurrent.BlockingQueue;
 
 import org.apache.log4j.Logger;
 
+import Task.ITask;
+
 public class Pool extends Thread {
 	final static Logger logger = Logger.getLogger(Pool.class);
 
 	private int identificator;
-	private BlockingQueue<Runnable> taskQueue = null;
+	private BlockingQueue<ITask> taskQueue = null;
 	private boolean isStopped = false;
 	private ThreadPool threadPool;
+	private static int mCount;
 
-	public Pool(BlockingQueue<Runnable> queue, int id, ThreadPool threadPool) {
+	public Pool(BlockingQueue<ITask> queue, ThreadPool threadPool) {
 		taskQueue = queue;
-		this.identificator = id;
+		this.identificator = ++mCount;
 		this.threadPool = threadPool;
 	}
 
 	public void run() {
 		logger.info("Run method called");
-		Runnable r = null;
+		ITask r = null;
 		
 		while (!isStopped()) {
 			synchronized (this) {
@@ -36,7 +39,7 @@ public class Pool extends Thread {
 				}
 
 				try {
-					r = (Runnable) taskQueue.take();
+					r = (ITask) taskQueue.take();
 				} catch (Exception e) {
 					logger.error(e.getMessage());
 				}
@@ -44,7 +47,7 @@ public class Pool extends Thread {
 			}
 
 			try {
-				r.run();
+				r.execute();
 			} catch (RuntimeException e) {
 				logger.error(e.getMessage());
 			}

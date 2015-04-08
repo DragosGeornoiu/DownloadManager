@@ -7,31 +7,35 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.log4j.Logger;
 
+import Task.ITask;
+
 public class ThreadPool {
 	final static Logger logger = Logger.getLogger(ThreadPool.class);
 
-	private BlockingQueue<Runnable> taskQueue = null;
+	private BlockingQueue<ITask> taskQueue = null;
 	private List<Pool> threads;
 	private List<Pool> reusableThreads;
 	private boolean isStopped = false;
 	private int noOfThreads;
-	private int id = 0;
 
 	public ThreadPool(int noOfThreads) {
 		logger.info("Thread Pool initialised with " + noOfThreads + " threads.");
-		taskQueue = new LinkedBlockingQueue<Runnable>();
+		taskQueue = new LinkedBlockingQueue<ITask>();
 		threads = new ArrayList<Pool>();
 		this.noOfThreads = noOfThreads;
 		// inca o structura pt. a le memora pe cele deja initializate
 		reusableThreads = new ArrayList<Pool>();
 	}
 
-	public synchronized void execute(Runnable task) {
-		logger.info("execute(Runnable) method called.");
+	public synchronized void execute(ITask task) {
+		logger.info("execute(ITask) method called.");
 		if (this.isStopped) {
 			throw new IllegalStateException("ThreadPool is stopped");
 		}
-
+		System.out.println("----------------------");
+		System.out.println("ThreadListSize: " + threads.size());
+		System.out.println("ReusableThreadsList: " + reusableThreads.size());
+	
 		try {
 			this.taskQueue.put(task);
 		} catch (Exception e) {
@@ -44,10 +48,9 @@ public class ThreadPool {
 			// daca nu exista, verific daca pot initializa un thread nou sau nu.
 
 			if (threads.size() < noOfThreads) {
-				Pool pool = new Pool(taskQueue, id, this);
+				Pool pool = new Pool(taskQueue, this);
 				threads.add(pool);
 				pool.start();
-				id++;
 			}
 		} else {
 			// folosesc un thread din reusableThreads
@@ -61,17 +64,18 @@ public class ThreadPool {
 
 		}
 		
-		System.out.println("----------------------");
+		
 		System.out.println("ThreadListSize: " + threads.size());
 		System.out.println("ReusableThreadsList: " + reusableThreads.size());
+		System.out.println("----------------------");
 
 	}
 
-	public void finishedRun(Pool runnable) {
-		reusableThreads.add(runnable);
+	public void finishedRun(Pool ITask) {
+		reusableThreads.add(ITask);
 		for (int i = 0; i < threads.size(); i++) {
 			Pool p = threads.get(i);
-			if (p.getIdentificator() == runnable.getIdentificator()) {
+			if (p.getIdentificator() == ITask.getIdentificator()) {
 				threads.remove(i);
 				break;
 			}

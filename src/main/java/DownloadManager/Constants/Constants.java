@@ -46,4 +46,6 @@ public class Constants {
 	public static final int SIZE_COLUMN_POSITION = 2;
 	public static final int CHECK_COLUMN_POSITION = 3;
 	public static final int PROGRESS_COLUMN_POSITION = 4;
+	public static final int KBYTE = 1024;
+	public static final String STARTING_DOWNLOAD_OF_DIRECTORY = "Starting download of directory: ";
 }

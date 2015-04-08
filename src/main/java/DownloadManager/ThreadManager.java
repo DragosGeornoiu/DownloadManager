@@ -9,6 +9,7 @@ import javax.swing.JTextArea;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.log4j.Logger;
 
+import Task.Task;
 import DownloadManager.Constants.Constants;
 import DownloadManager.GUI.CustomTable;
 import DownloadManager.ThreadPool.ThreadPool;
@@ -72,7 +73,7 @@ public class ThreadManager {
 
 		for (int i = 0; i < threadList.size(); i++) {
 			try {
-				threadPool.execute(threadList.get(i));
+				threadPool.execute(new Task(threadList.get(i)));
 			} catch (Exception e) {
 				logger.error(e.getMessage());
 				e.printStackTrace();
