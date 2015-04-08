@@ -21,15 +21,14 @@ public class Pool extends Thread {
 	public void run() {
 		logger.info("Run method called");
 		Runnable r = null;
-		while (true && !isStopped()) {
+		
+		while (!isStopped()) {
 			synchronized (this) {
 				while (taskQueue.isEmpty()) {
 					try {
-						// aici probabil ar trebui sa ii spun threadPool-ului ca
-						// thread-ul acesta si-a incheiat download-ul si astepta
-						// sa fie refolosit.
+						// aici ii spun threadPool-ului ca thread-ul acesta si-a
+						// incheiat download-ul si astepta sa fie refolosit.
 						threadPool.finishedRun(this);
-						System.out.println("FINISHED a thread: " + identificator);
 						wait();
 					} catch (InterruptedException ignored) {
 						logger.error(ignored.getMessage());
@@ -44,10 +43,7 @@ public class Pool extends Thread {
 
 			}
 
-			// If we don't catch RuntimeException,
-			// the pool could leak threads
 			try {
-				System.out.println("EXECUTING RUN OF POOL");
 				r.run();
 			} catch (RuntimeException e) {
 				logger.error(e.getMessage());
@@ -68,7 +64,7 @@ public class Pool extends Thread {
 	public synchronized boolean isStopped() {
 		return isStopped;
 	}
-	
+
 	public void set() {
 		notify();
 	}

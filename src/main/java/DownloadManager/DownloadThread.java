@@ -40,7 +40,6 @@ public class DownloadThread implements Runnable {
 		download(downloadTo, remoteFile, "");
 	}
 
-
 	/**
 	 * Starts the download of a file. At this point it isn't known if the file
 	 * is a directory or not.
@@ -55,7 +54,7 @@ public class DownloadThread implements Runnable {
 	 * @return true if the download is successful, false otherwise.
 	 */
 	public boolean download(String to, FTPFile file, String path) {
-		logger.info("Starting to download file " +file.getName() + " to " + to);
+		logger.info("Starting to download file " + file.getName() + " to " + to);
 		if (ftpClient == null) {
 			logger.error(Constants.FTPCLIENT_NOT_INIT);
 			return false;
@@ -70,7 +69,7 @@ public class DownloadThread implements Runnable {
 						int index = displayer.getIndexWhere(file.getName());
 						if (index != -1) {
 							displayer.appendToProgress("100% already", index);
-							displayer.appendToTextArea( file.getName() + Constants.FILE_ALREADY_DOWNLOADED);
+							displayer.appendToTextArea(file.getName() + Constants.FILE_ALREADY_DOWNLOADED);
 						}
 					} else {
 						displayer.appendToTextArea(Constants.STARTING_TO_DOWNLOAD + path + "/" + file.getName());
@@ -104,23 +103,23 @@ public class DownloadThread implements Runnable {
 			inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(file.getName()));
 			outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
 			// citesti 1024
-			int read = inputStream.read();
+			int read;
 			long size = 0;
 			long whatSize = file.getSize();
-
+			byte[] data = new byte[1024];
 			while (size < whatSize) {
+				read = inputStream.read(data);
 				if (read != -1) {
-					size++;
-					outputStream.write(read);
-					read = inputStream.read();
-
+					size += read;
+					outputStream.write(data, 0, read);
+					//outputStream.write(data);
 					if (size * 100 / whatSize > alreadyDownloaded) {
 						alreadyDownloaded = (int) (size * 100 / whatSize);
 						int index = displayer.getIndexWhere(file.getName());
 						if (index != -1) {
 							displayer.appendToProgress(alreadyDownloaded + "%", index);
 						}
-						//Thread.sleep(100);
+						// Thread.sleep(100);
 					}
 				}
 
@@ -134,14 +133,14 @@ public class DownloadThread implements Runnable {
 			outputStream.flush();
 			outputStream.close();
 
+			if (file.getSize() == localFile.length() && remainingInDirectory == 0) {
+				displayer.appendToTextArea(Constants.FINISHED_DOWNLOADING + path + "//" + file.getName());
+			}
+
 			if (!ftpClient.completePendingCommand()) {
 				ftpClient.logout();
 				ftpClient.disconnect();
 				logger.error(Constants.FILE_TRANSFER_FAILED);
-			}
-
-			if (file.getSize() == localFile.length() && remainingInDirectory == 0) {
-				displayer.appendToTextArea(Constants.FINISHED_DOWNLOADING + path + "//" + file.getName());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -169,7 +168,7 @@ public class DownloadThread implements Runnable {
 				logger.error("Error: " + se.getMessage());
 			}
 		}
-		
+
 		try {
 			boolean check = ftpClient.changeWorkingDirectory(path + "/" + file.getName());
 

@@ -9,7 +9,7 @@ import org.apache.log4j.Logger;
 
 public class ThreadPool {
 	final static Logger logger = Logger.getLogger(ThreadPool.class);
-	
+
 	private BlockingQueue<Runnable> taskQueue = null;
 	private List<Pool> threads;
 	private List<Pool> reusableThreads;
@@ -24,14 +24,6 @@ public class ThreadPool {
 		this.noOfThreads = noOfThreads;
 		// inca o structura pt. a le memora pe cele deja initializate
 		reusableThreads = new ArrayList<Pool>();
-		
-		/*for (int i = 0; i < noOfThreads; i++) {
-			threads.add(new PoolThread(taskQueue));
-		}
-		
-		for (PoolThread thread : threads) {
-			thread.start();
-		}*/
 	}
 
 	public synchronized void execute(Runnable task) {
@@ -39,62 +31,51 @@ public class ThreadPool {
 		if (this.isStopped) {
 			throw new IllegalStateException("ThreadPool is stopped");
 		}
-		
+
 		try {
 			this.taskQueue.put(task);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		//verific daca exista thread initializat, dar care si-a finalizat download-ul
-		if(reusableThreads.isEmpty()) {
-			System.out.println("reusableThreads is empty");
-			System.out.println("limit: " + noOfThreads);
-			System.out.println("threads size: " + threads.size());
-			System.out.println("reusableThreads size: " + reusableThreads.size());
-			System.out.println("tasqQueue size: " + taskQueue.size());
-			//daca nu exista, verific daca pot initializa un thread nou sau nu.
-			if(threads.size() < noOfThreads) {
+
+		// verific daca exista thread initializat, dar care si-a finalizat
+		// download-ul
+		if (reusableThreads.isEmpty()) {
+			// daca nu exista, verific daca pot initializa un thread nou sau nu.
+
+			if (threads.size() < noOfThreads) {
 				Pool pool = new Pool(taskQueue, id, this);
 				threads.add(pool);
 				pool.start();
 				id++;
 			}
 		} else {
-			System.out.println("reusableThreads is NOT empty");
-			System.out.println("limit: " + noOfThreads);
-			System.out.println("threads size: " + threads.size());
-			System.out.println("reusableThreads size: " + reusableThreads.size());
-			System.out.println("tasqQueue size: " + taskQueue.size());
 			// folosesc un thread din reusableThreads
 			Pool pool = reusableThreads.get(0);
 			reusableThreads.remove(0);
 			threads.add(pool);
-			
-			System.out.println("Tryed to reuse a reusableThread: " + pool.getIdentificator());
-			System.out.println("limit: " + noOfThreads);
-			System.out.println("threads size: " + threads.size());
-			System.out.println("reusableThreads size: " + reusableThreads.size());
-			System.out.println("tasqQueue size: " + taskQueue.size());
-			// Aici ar trebui sa scot reusableThread-ul din wait
+
 			synchronized (pool) {
-				pool.notify();				
+				pool.notify();
 			}
 
 		}
 		
+		System.out.println("----------------------");
+		System.out.println("ThreadListSize: " + threads.size());
+		System.out.println("ReusableThreadsList: " + reusableThreads.size());
+
 	}
-	
+
 	public void finishedRun(Pool runnable) {
 		reusableThreads.add(runnable);
-		for(int i=0; i<threads.size(); i++) {
+		for (int i = 0; i < threads.size(); i++) {
 			Pool p = threads.get(i);
-			if(p.getIdentificator() == runnable.getIdentificator()) {
+			if (p.getIdentificator() == runnable.getIdentificator()) {
 				threads.remove(i);
 				break;
 			}
 		}
-		System.out.println("new reusable Thread added. New size: " + reusableThreads.size());
 	}
 
 	public synchronized void stop() {
@@ -112,7 +93,5 @@ public class ThreadPool {
 	public void setNoOfThreads(int noOfThreads) {
 		this.noOfThreads = noOfThreads;
 	}
-	
-	
 
 }
