@@ -164,10 +164,10 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			names[i] = files[i].getName();
 			if (files[i].isDirectory()) {
 				types[i] = Constants.DIRECTORY;
-				sizes[i] = "[" + FileUtils.byteCountToDisplaySize(directorySize(files[i])) + "]";
+				sizes[i] = FileUtils.byteCountToDisplaySize(directorySize(files[i]));
 			} else {
 				types[i] = " - ";
-				sizes[i] = "[" + FileUtils.byteCountToDisplaySize(files[i].getSize()) + "]";
+				sizes[i] = FileUtils.byteCountToDisplaySize(files[i].getSize());
 			}
 		}
 

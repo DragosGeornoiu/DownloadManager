@@ -16,7 +16,7 @@ import DownloadManager.Constants.Constants;
 
 /**
  * 
- * A thread responsible for downloading a file from the given ftpClient and post
+ * Downloader is responsible for downloading a file from the given ftpClient and post
  * in the textArea intermediate results.
  *
  */
@@ -108,7 +108,7 @@ public class Downloader {
 
 			inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(file.getName()));
 			outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
-			// citesti 1024
+
 			int read;
 			long size = 0;
 			long whatSize = file.getSize();
@@ -118,7 +118,7 @@ public class Downloader {
 				if (read != -1) {
 					size += read;
 					outputStream.write(data, 0, read);
-					// outputStream.write(data);
+
 					if (size * 100 / whatSize > alreadyDownloaded) {
 						alreadyDownloaded = (int) (size * 100 / whatSize);
 						final int index = displayer.getIndexWhere(file.getName());
@@ -131,7 +131,6 @@ public class Downloader {
 							});
 							
 						}
-						// Thread.sleep(100);
 					}
 				}
 

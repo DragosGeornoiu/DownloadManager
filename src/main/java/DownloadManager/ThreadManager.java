@@ -25,7 +25,6 @@ public class ThreadManager {
 	private JTextArea display;
 	private int noOfWorkers;
 	private List<Downloader> threadList;
-	// private ExecutorService executor;
 	private FTPFile[] files;
 	private List<String> names;
 	private FTPLogin downloader;
@@ -53,8 +52,6 @@ public class ThreadManager {
 		logger.info(Constants.STARTING_DOWNLOAD);
 		threadList = new ArrayList<Downloader>();
 
-		// executor = Executors.newFixedThreadPool(noOfWorkers);
-
 		for (int i = 0; i < files.length; i++) {
 			if (names.contains(files[i].getName())) {
 				FTPLogin ftpLogin = new FTPLogin(downloader.getServer(), 21);
@@ -78,7 +75,6 @@ public class ThreadManager {
 				logger.error(e.getMessage());
 				e.printStackTrace();
 			}
-			// executor.execute(threadList.get(i));
 		}
 
 	}
@@ -112,7 +108,6 @@ public class ThreadManager {
 		this.path = path;
 		
 		init();
-
 	}
 
 }

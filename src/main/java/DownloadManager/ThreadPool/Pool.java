@@ -23,7 +23,7 @@ public class Pool extends Thread {
 
 	public void run() {
 		logger.info("Run method called");
-		ITask r = null;
+		ITask task = null;
 		
 		while (!isStopped()) {
 			synchronized (this) {
@@ -39,7 +39,7 @@ public class Pool extends Thread {
 				}
 
 				try {
-					r = (ITask) taskQueue.take();
+					task = (ITask) taskQueue.take();
 				} catch (Exception e) {
 					logger.error(e.getMessage());
 				}
@@ -47,7 +47,7 @@ public class Pool extends Thread {
 			}
 
 			try {
-				r.execute();
+				task.execute();
 			} catch (RuntimeException e) {
 				logger.error(e.getMessage());
 			}
@@ -66,10 +66,6 @@ public class Pool extends Thread {
 
 	public synchronized boolean isStopped() {
 		return isStopped;
-	}
-
-	public void set() {
-		notify();
 	}
 
 }
