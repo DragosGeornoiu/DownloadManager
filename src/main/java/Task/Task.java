@@ -1,18 +1,18 @@
 package Task;
 
-import DownloadManager.DownloadThread;
+import DownloadManager.Downloader;
 
 public class Task implements ITask {
 
-	DownloadThread downloadThread;
+	Downloader downloadThread;
 	
-	public Task(DownloadThread downloadThread) {
+	public Task(Downloader downloadThread) {
 		this.downloadThread = downloadThread;
 	}
 	
 	@Override
 	public void execute() {
-		downloadThread.run();
+		downloadThread.execute();;
 	}
 
 }

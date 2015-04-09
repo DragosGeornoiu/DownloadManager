@@ -20,8 +20,8 @@ import DownloadManager.Constants.Constants;
  * in the textArea intermediate results.
  *
  */
-public class DownloadThread implements Runnable {
-	final static Logger logger = Logger.getLogger(DownloadThread.class);
+public class Downloader {
+	final static Logger logger = Logger.getLogger(Downloader.class);
 	private boolean suspended = false;
 	private FTPClient ftpClient;
 	private FTPFile remoteFile;
@@ -31,14 +31,14 @@ public class DownloadThread implements Runnable {
 	private int indexofDirectory = -1;
 	private ThreadToGUI displayer;
 
-	DownloadThread(ThreadToGUI displayer, FTPClient ftpClient, FTPFile file, String downloadTo) {
+	Downloader(ThreadToGUI displayer, FTPClient ftpClient, FTPFile file, String downloadTo) {
 		this.displayer = displayer;
 		this.ftpClient = ftpClient;
 		this.remoteFile = file;
 		this.downloadTo = downloadTo;
 	}
 
-	public void run() {
+	public void execute() {
 		download(downloadTo, remoteFile, "");
 	}
 
