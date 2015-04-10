@@ -71,7 +71,7 @@ public class CustomTable extends JPanel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public Class getColumnClass(int column) {
+			public Class<?> getColumnClass(int column) {
 				switch (column) {
 				case Constants.NAME_COLUMN_POSITION:
 					return String.class;
@@ -141,13 +141,13 @@ public class CustomTable extends JPanel {
 
 	private List<String> getListWithSizes() {
 		List<String> sizes = new ArrayList<String>();
-		sizes.add("EB");
-		sizes.add("PB");
-		sizes.add("TB");
-		sizes.add("GB");
-		sizes.add("MB");
-		sizes.add("KB");
-		sizes.add("bytes");
+		sizes.add(Constants.EB);
+		sizes.add(Constants.PB);
+		sizes.add(Constants.TB);
+		sizes.add(Constants.GB);
+		sizes.add(Constants.MB);
+		sizes.add(Constants.KB);
+		sizes.add(Constants.BYTES);
 		return sizes;
 	}
 

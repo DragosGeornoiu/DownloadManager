@@ -36,6 +36,7 @@ public class Downloader {
 		this.ftpClient = ftpClient;
 		this.remoteFile = file;
 		this.downloadTo = downloadTo;
+		
 	}
 
 	public void execute() {
@@ -145,7 +146,7 @@ public class Downloader {
 			outputStream.close();
 
 			if (file.getSize() == localFile.length() && remainingInDirectory == 0) {
-				displayer.appendToTextArea(Constants.FINISHED_DOWNLOADING + path + "//" + file.getName());
+				displayer.appendToTextArea(Constants.FINISHED_DOWNLOADING + path + "/" + file.getName());
 			}
 
 			if (!ftpClient.completePendingCommand()) {
@@ -272,6 +273,10 @@ public class Downloader {
 	public synchronized void resume() {
 		suspended = false;
 		notify();
+	}
+	
+	public boolean isSuspended() {
+		return suspended;
 	}
 
 }

@@ -114,7 +114,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		refreshButton = new JButton(Constants.REFRESH);
 		refreshButton.addActionListener(this);
 		refreshButton.setBounds(350, 10, 100, 25);
-		panel.add(refreshButton);
+		//panel.add(refreshButton);
 
 		allCheckBox = new JCheckBox(Constants.SELECT_ALL);
 		allCheckBox.setBounds(590, 25, 100, 25);
@@ -215,23 +215,47 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		} else if (e.getSource() == runButton) {
 			logger.info("Download button was pressed.");
 			// The download of the selected files starts.
-			pauseButton.setText(Constants.PAUSE);
-			if (noOfThreadsTextField.getText().trim().isEmpty()) {
-				setErrorLabel();
-			} else {
-				try {
-					noOfThreads = Integer.parseInt(noOfThreadsTextField.getText());
-					errorLabel.setText("");
-				} catch (Exception ex) {
-					logger.error(ex.getMessage());
+
+			if (runButton.getText().equals(Constants.DOWNLOAD)) {
+				noOfThreadsTextField.setEditable(false);
+				runButton.setText(Constants.ADD_TO_QUEUE);
+				pauseButton.setText(Constants.PAUSE);
+				if (noOfThreadsTextField.getText().trim().isEmpty()) {
 					setErrorLabel();
+				} else {
+					try {
+						noOfThreads = Integer.parseInt(noOfThreadsTextField.getText());
+						errorLabel.setText("");
+					} catch (Exception ex) {
+						logger.error(ex.getMessage());
+						setErrorLabel();
+					}
 				}
-			}
 
-			if (noOfThreads <= 0) {
-				setErrorLabel();
-			} else {
+				if (noOfThreads <= 0) {
+					setErrorLabel();
+				} else {
 
+					List<String> names = new ArrayList<String>();
+					// List<JCheckBox> checkBoxes = customTable.getCheckBoxes();
+
+					for (int i = 0; i < customTable.getSizeOfElements(); i++) {
+						if ((Boolean) customTable.retVal(i, 3) == true) {
+							names.add((String) customTable.retVal(i, 0));
+						}
+					}
+
+					// nu ar trebui sa fac o noua instanta a threadManager la
+					// fiecare download, ci sa o folosesc pe cea precedenta
+					if (workerManager == null) {
+						workerManager = new ThreadManager(noOfThreadsTextField, runButton, customTable, display, noOfThreads, names, files,
+								ftpLogin, path);
+						workerManager.init();
+					} else {
+						workerManager.update(customTable, display, noOfThreads, names, files, ftpLogin, path);
+					}
+				}
+			} else if(runButton.getText().equals(Constants.ADD_TO_QUEUE)) {
 				List<String> names = new ArrayList<String>();
 				// List<JCheckBox> checkBoxes = customTable.getCheckBoxes();
 
@@ -240,14 +264,8 @@ public class DownloadGUI extends JFrame implements ActionListener {
 						names.add((String) customTable.retVal(i, 0));
 					}
 				}
-				
-				//nu ar trebui sa fac o noua instanta a threadManager la fiecare download, ci sa o folosesc pe cea precedenta
-				if (workerManager == null) {
-					workerManager = new ThreadManager(customTable, display, noOfThreads, names, files, ftpLogin, path);
-					workerManager.init();
-				} else {
-					workerManager.update(customTable, display, noOfThreads, names, files, ftpLogin, path);
-				}
+
+				workerManager.addToQueue(noOfThreads, names, files);
 			}
 		} else if (e.getSource() == refreshButton) {
 			logger.info("Refesh button was pressed.");
@@ -274,6 +292,17 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				logger.info("Resume button was pressed.");
 				display.append(Constants.RESUME_MESSAGE + "\n");
 				pauseButton.setText(Constants.PAUSE);
+				// AAAAAAAAAAAAAAAAAAAAAAAAAA
+
+				// try {
+				// noOfThreads =
+				// Integer.parseInt(noOfThreadsTextField.getText());
+				// errorLabel.setText("");
+				// } catch (Exception ex) {
+				// logger.error(ex.getMessage());
+				// setErrorLabel();
+				// }
+				// noOfThreads
 				workerManager.resume();
 			}
 		}
@@ -338,5 +367,4 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		}
 		return length;
 	}
-
 }

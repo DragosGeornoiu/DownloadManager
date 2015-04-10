@@ -15,4 +15,29 @@ public class Task implements ITask {
 		downloadThread.execute();;
 	}
 
+	public Downloader getDownloadThread() {
+		return downloadThread;
+	}
+
+	public void setDownloadThread(Downloader downloadThread) {
+		this.downloadThread = downloadThread;
+	}
+
+	@Override
+	public boolean isSuspended() {
+		return downloadThread.isSuspended();
+	}
+
+	@Override
+	public void resume() {
+		downloadThread.resume();
+	}
+
+	@Override
+	public void pause() {
+		downloadThread.resume();
+	}
+	
+	
+
 }

@@ -11,7 +11,7 @@ public class Constants {
 	public static final String PATH_LABEL = "Path";
 	public static final String NO_PATH_SELECTED = "Path: no path selected";
 	public static final String NUMBER_OF_THREADS_LABEL = "no. of threads: ";
-	public static final String DOWNLOAD = "Donwload";
+	public static final String DOWNLOAD = "Download";
 	public static final String PAUSE = "Pause";
 	public static final String REFRESH = "Refresh";
 	public static final String CLEAR = "Clear";
@@ -40,6 +40,14 @@ public class Constants {
 	public static final String CHECK_ALL = "Check all";
 	public static final String STARTING_DOWNLOAD = "Starting download of selected files";
 	public static final String STARTING_DOWNLOAD_OF_DIRECTORY = "Starting download of directory: ";
+	public static final String EB = "EB";
+	public static final String PB = "PB";
+	public static final String TB = "TB";
+	public static final String GB = "GB";
+	public static final String MB = "MB";
+	public static final String KB = "KB";
+	public static final String BYTES = "bytes";
+	
 	
 	public static final int DEFAULT_NUMBER_OF_THREADS = 5;
 	public static final int NAME_COLUMN_POSITION = 0;
@@ -48,5 +56,6 @@ public class Constants {
 	public static final int CHECK_COLUMN_POSITION = 3;
 	public static final int PROGRESS_COLUMN_POSITION = 4;
 	public static final int KBYTE = 1024;
+	public static final String ADD_TO_QUEUE = "Add to queue";
 	
 }

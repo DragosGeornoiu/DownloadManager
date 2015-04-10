@@ -14,6 +14,7 @@ public class Pool extends Thread {
 	private boolean isStopped = false;
 	private ThreadPool threadPool;
 	private static int mCount;
+	ITask task;
 
 	public Pool(BlockingQueue<ITask> queue, ThreadPool threadPool) {
 		taskQueue = queue;
@@ -23,8 +24,7 @@ public class Pool extends Thread {
 
 	public void run() {
 		logger.info("Run method called");
-		ITask task = null;
-		
+
 		while (!isStopped()) {
 			synchronized (this) {
 				while (taskQueue.isEmpty()) {
@@ -57,7 +57,11 @@ public class Pool extends Thread {
 	public synchronized void doStop() {
 		logger.info("doStop() method called");
 		isStopped = true;
-		this.interrupt(); // break pool thread out of dequeue() call.
+		try {
+			this.interrupt(); // break pool thread out of dequeue() call.
+		} catch (Exception e) {
+			logger.info(e.getMessage());
+		}
 	}
 
 	public int getIdentificator() {
@@ -66,6 +70,14 @@ public class Pool extends Thread {
 
 	public synchronized boolean isStopped() {
 		return isStopped;
+	}
+
+	public ITask getTask() {
+		return task;
+	}
+
+	public void setTask(ITask task) {
+		this.task = task;
 	}
 
 }
