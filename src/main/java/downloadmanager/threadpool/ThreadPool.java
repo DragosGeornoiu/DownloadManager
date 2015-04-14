@@ -109,7 +109,7 @@ public class ThreadPool {
 				// limita. Atunci, cand
 				// shimba nr-ul limita, listele reusableThreads si threads nu
 				// sunt afectate.
-				System.out.println("reusableThreads + threads > noOfThreads");
+				System.out.println("reusableThreads + threads < noOfThreads");
 				System.out.println("reusableThreads: " + reusableThreads.size());
 				System.out.println("threads: " + threads.size());
 				System.out.println("oldNoOfThreads: " + this.noOfThreads);
@@ -118,19 +118,19 @@ public class ThreadPool {
 				this.noOfThreads = noOfThreads;
 			} else {
 				// trebuie sa eliminam din liste.
-				System.out.println("reusableThreads + threads <= noOfThreads");
+				System.out.println("reusableThreads + threads >= noOfThreads");
 				System.out.println("reusableThreads: " + reusableThreads.size());
 				System.out.println("threads: " + threads.size());
 				System.out.println("oldNoOfThreads: " + this.noOfThreads);
 				System.out.println("newNoOfThreads: " + noOfThreads);
 				System.out.println("taskQueue: " + taskQueue.size());
-				if (reusableThreads.size() > this.noOfThreads - noOfThreads) {
-					// este suficient sa eliminam numai din reusableThreads,
-					// fara sa fie afectate
-					// thread-urile active in acest moment.
-					System.out.println("reusableThreads > oldNoOfThreads - newNoOfThreads");
+				if(threads.isEmpty() && reusableThreads.size() > noOfThreads) {
+					System.out.println("threads is empty");
+					System.out.println("reusableThreads > noOfThreads");
 					System.out.println("size before: " + reusableThreads.size());
-					for (int i = 0; (i < this.noOfThreads - noOfThreads); i++) {
+					
+					int size = reusableThreads.size();
+					for (int i = 0; i < size - noOfThreads; i++) {
 						reusableThreads.remove(0);
 					}
 					System.out.println("size after: " + reusableThreads.size());
@@ -145,7 +145,12 @@ public class ThreadPool {
 					}
 
 					int i = 0;
-					while (this.noOfThreads - noOfThreads - reusSize > i) {
+					System.out.println("this.noOfThreads: " + this.noOfThreads);
+					System.out.println("noOfThreads: " + noOfThreads);
+					System.out.println("reusSize: " + reusSize);
+					System.out.println("this.noOfThreads - noOfThreads - reusSize: " + (this.noOfThreads - noOfThreads - reusSize));
+					while (this.noOfThreads - noOfThreads - reusSize >= i) {
+						System.out.println("i: " + i);
 						System.out.println("before taskQueue: " + taskQueue.size());
 						Pool pool = threads.get(0);
 						taskQueue.add(pool.getTask());

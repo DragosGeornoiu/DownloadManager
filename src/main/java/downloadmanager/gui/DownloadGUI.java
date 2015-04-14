@@ -114,7 +114,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		refreshButton = new JButton(Constants.REFRESH);
 		refreshButton.addActionListener(this);
 		refreshButton.setBounds(350, 10, 100, 25);
-		//panel.add(refreshButton);
+		// panel.add(refreshButton);
 
 		allCheckBox = new JCheckBox(Constants.SELECT_ALL);
 		allCheckBox.setBounds(590, 25, 100, 25);
@@ -234,28 +234,27 @@ public class DownloadGUI extends JFrame implements ActionListener {
 
 				if (noOfThreads <= 0) {
 					setErrorLabel();
-				} else {
+				}
 
-					List<String> names = new ArrayList<String>();
-					// List<JCheckBox> checkBoxes = customTable.getCheckBoxes();
+				List<String> names = new ArrayList<String>();
+				// List<JCheckBox> checkBoxes = customTable.getCheckBoxes();
 
-					for (int i = 0; i < customTable.getSizeOfElements(); i++) {
-						if ((Boolean) customTable.retVal(i, 3) == true) {
-							names.add((String) customTable.retVal(i, 0));
-						}
-					}
-
-					// nu ar trebui sa fac o noua instanta a threadManager la
-					// fiecare download, ci sa o folosesc pe cea precedenta
-					if (workerManager == null) {
-						workerManager = new ThreadManager(noOfThreadsTextField, runButton, customTable, display, noOfThreads, names, files,
-								ftpLogin, path);
-						workerManager.init();
-					} else {
-						workerManager.update(customTable, display, noOfThreads, names, files, ftpLogin, path);
+				for (int i = 0; i < customTable.getSizeOfElements(); i++) {
+					if ((Boolean) customTable.retVal(i, 3) == true) {
+						names.add((String) customTable.retVal(i, 0));
 					}
 				}
-			} else if(runButton.getText().equals(Constants.ADD_TO_QUEUE)) {
+
+				// nu ar trebui sa fac o noua instanta a threadManager la
+				// fiecare download, ci sa o folosesc pe cea precedenta
+				if (workerManager == null) {
+					workerManager = new ThreadManager(noOfThreadsTextField, runButton, customTable, display,
+							noOfThreads, names, files, ftpLogin, path);
+					workerManager.init();
+				} else {
+					workerManager.update(customTable, display, noOfThreads, names, files, ftpLogin, path);
+				}
+			} else if (runButton.getText().equals(Constants.ADD_TO_QUEUE)) {
 				List<String> names = new ArrayList<String>();
 				// List<JCheckBox> checkBoxes = customTable.getCheckBoxes();
 
