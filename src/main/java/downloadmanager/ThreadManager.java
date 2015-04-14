@@ -149,7 +149,6 @@ public class ThreadManager {
 				downloaderList.add(downloader);
 				//if (downloaderList.size() < noOfThreads) {
 					Task task = new Task(downloader);
-					System.out.println("AAAAAAAAA: " + isPaused);
 					if (isPaused) {
 						task.pause();
 					}

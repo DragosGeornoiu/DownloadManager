@@ -20,15 +20,15 @@ public class Constants {
 	public static final String RESUME = "Resume";
 	public static final String RESUME_MESSAGE = "---RESUME---";
 	public static final String INVALID_NUMBER_OF_THREADS_RED = "<html><font color='red'>Invalid number of threads. Selcted default 5.</font></html>";
-	public static final String HOSTNAME_LABEL = "hostname";
-	public static final String USER = "User";
+	public static final String HOSTNAME_LABEL = "Host: ";
+	public static final String USER = "Username: ";
 	public static final String LOGIN_BUTTON = "login";
 	public static final String LOGIN_NOT_SUCCESSFULL = "<html><font color='red'>The credentials didn't check out</font></html>";
 	public static final String FINISHED_DOWNLOADING = "Finished downloading ";
 	public static final String FTPCLIENT_NOT_INIT = "ftpCliend not initialised";
 	public static final String STARTING_TO_DOWNLOAD = "Starting to download file: ";
 	public static final String FILE_TRANSFER_FAILED = "File transfer failed.";
-	public static final String PASSWORD_LABEL = "Password";
+	public static final String PASSWORD_LABEL = "Password: ";
 	public static final String DIRECTORY = "<DIR>";
 	public static final String TABLE_COLUMN_NAME = "Name";
 	public static final String TABLE_COLUMN_TYPE = "Type";

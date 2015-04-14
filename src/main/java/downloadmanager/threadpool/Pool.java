@@ -11,7 +11,7 @@ public class Pool extends Thread {
 
 	private int identificator;
 	private BlockingQueue<ITask> taskQueue = null;
-	private boolean isStopped = false;
+	private volatile boolean isStopped = false;
 	private ThreadPool threadPool;
 	private static int mCount;
 	ITask task;
@@ -26,6 +26,16 @@ public class Pool extends Thread {
 		logger.info("Run method called");
 
 		while (!isStopped()) {
+		//while(!Thread.currentThread().isInterrupted()) {
+			try {
+				task = (ITask) taskQueue.take();
+				task.execute();
+			} catch (RuntimeException e) {
+				logger.error(e.getMessage());
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+			}
+
 			synchronized (this) {
 				while (taskQueue.isEmpty()) {
 					try {
@@ -38,21 +48,32 @@ public class Pool extends Thread {
 					}
 				}
 
-				try {
-					task = (ITask) taskQueue.take();
-				} catch (Exception e) {
-					logger.error(e.getMessage());
-				}
-
 			}
 
-			try {
-				task.execute();
-			} catch (RuntimeException e) {
-				logger.error(e.getMessage());
-			}
 		}
+
+		System.out.println("Thread " + identificator + " finished his run...");
 	}
+
+	/*
+	 * public void run() { logger.info("Run method called");
+	 * 
+	 * while (!isStopped()) { synchronized (this) { while (taskQueue.isEmpty())
+	 * { try { // aici ii spun threadPool-ului ca thread-ul acesta si-a //
+	 * incheiat download-ul si astepta sa fie refolosit.
+	 * threadPool.finishedRun(this); wait(); } catch (InterruptedException
+	 * ignored) { logger.error(ignored.getMessage()); } }
+	 * 
+	 * try { task = (ITask) taskQueue.take(); } catch (Exception e) {
+	 * logger.error(e.getMessage()); }
+	 * 
+	 * }
+	 * 
+	 * try { task.execute(); } catch (RuntimeException e) {
+	 * logger.error(e.getMessage()); } }
+	 * 
+	 * System.out.println("Thread " + identificator + " finished his run..."); }
+	 */
 
 	public synchronized void doStop() {
 		logger.info("doStop() method called");
@@ -62,6 +83,8 @@ public class Pool extends Thread {
 		} catch (Exception e) {
 			logger.info(e.getMessage());
 		}
+		
+		notify();
 	}
 
 	public int getIdentificator() {
@@ -74,6 +97,10 @@ public class Pool extends Thread {
 
 	public ITask getTask() {
 		return task;
+	}
+
+	public void kill() {
+		isStopped = true;
 	}
 
 	public void setTask(ITask task) {
