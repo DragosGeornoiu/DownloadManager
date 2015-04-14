@@ -1,4 +1,4 @@
-package DownloadManager;
+package downloadmanager;
 
 import java.io.IOException;
 

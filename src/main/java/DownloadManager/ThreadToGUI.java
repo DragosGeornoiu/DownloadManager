@@ -1,10 +1,10 @@
-package DownloadManager;
+package downloadmanager;
 
 import javax.swing.JTextArea;
 
 import org.apache.log4j.Logger;
 
-import DownloadManager.GUI.CustomTable;
+import downloadmanager.gui.CustomTable;
 
 /**
  * Used to append to the table and textArea of the user interface from the

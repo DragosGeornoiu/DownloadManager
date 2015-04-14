@@ -1,4 +1,4 @@
-package DownloadManager.GUI;
+package downloadmanager.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
@@ -20,7 +20,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
-import DownloadManager.Constants.Constants;
+import downloadmanager.constants.Constants;
 
 /**
  * Initializes the table where the details of the files stored on the given

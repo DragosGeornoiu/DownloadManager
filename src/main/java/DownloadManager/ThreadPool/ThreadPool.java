@@ -1,4 +1,4 @@
-package DownloadManager.ThreadPool;
+package downloadmanager.threadpool;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,8 +7,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.log4j.Logger;
 
-import DownloadManager.ThreadManager;
-import Task.ITask;
+import downloadmanager.ThreadManager;
+import downloadmanager.task.ITask;
 
 public class ThreadPool {
 	final static Logger logger = Logger.getLogger(ThreadPool.class);

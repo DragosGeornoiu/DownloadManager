@@ -1,4 +1,4 @@
-package DownloadManager;
+package downloadmanager;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -12,7 +12,7 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.log4j.Logger;
 
-import DownloadManager.Constants.Constants;
+import downloadmanager.constants.Constants;
 
 /**
  * 

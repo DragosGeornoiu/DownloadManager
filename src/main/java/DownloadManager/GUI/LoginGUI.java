@@ -1,4 +1,4 @@
-package DownloadManager.GUI;
+package downloadmanager.gui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,8 +12,8 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
-import DownloadManager.FTPLogin;
-import DownloadManager.Constants.Constants;
+import downloadmanager.FTPLogin;
+import downloadmanager.constants.Constants;
 
 /**
  * 

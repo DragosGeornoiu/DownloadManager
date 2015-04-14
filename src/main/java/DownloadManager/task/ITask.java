@@ -1,4 +1,4 @@
-package Task;
+package downloadmanager.task;
 
 public interface ITask {
 	public void execute();

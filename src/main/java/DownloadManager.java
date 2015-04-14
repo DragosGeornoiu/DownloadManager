@@ -1,6 +1,6 @@
 import org.apache.log4j.Logger;
 
-import DownloadManager.GUI.LoginGUI;
+import downloadmanager.gui.LoginGUI;
 
 
 public class DownloadManager {

@@ -1,4 +1,4 @@
-package DownloadManager;
+package downloadmanager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,10 +10,10 @@ import javax.swing.JTextField;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.log4j.Logger;
 
-import DownloadManager.Constants.Constants;
-import DownloadManager.GUI.CustomTable;
-import DownloadManager.ThreadPool.ThreadPool;
-import Task.Task;
+import downloadmanager.constants.Constants;
+import downloadmanager.gui.CustomTable;
+import downloadmanager.task.Task;
+import downloadmanager.threadpool.ThreadPool;
 
 /**
  *
@@ -34,9 +34,10 @@ public class ThreadManager {
 	private ThreadPool threadPool;
 	private JButton downloadButton;
 	private JTextField displayNoOfThreads;
+	boolean isPaused;
 
-	public ThreadManager(JTextField displayNoOfThreads, JButton downloadButton, CustomTable customTable, JTextArea display, int noOfThreads,
-			List<String> names, FTPFile[] files, FTPLogin downloader, String path) {
+	public ThreadManager(JTextField displayNoOfThreads, JButton downloadButton, CustomTable customTable,
+			JTextArea display, int noOfThreads, List<String> names, FTPFile[] files, FTPLogin downloader, String path) {
 		this.customTable = customTable;
 		this.display = display;
 		this.noOfWorkers = noOfThreads;
@@ -88,6 +89,7 @@ public class ThreadManager {
 	 * Pauses the download of all the threads.
 	 */
 	public void pause() {
+		isPaused = true;
 		for (int i = 0; i < downloaderList.size(); i++) {
 			downloaderList.get(i).suspend();
 		}
@@ -98,8 +100,9 @@ public class ThreadManager {
 	 */
 	// int noOfThreads
 	public void resume() {
+		isPaused = false;
 		for (int i = 0; i < downloaderList.size(); i++) {
-			downloaderList.get(i).resume(); 
+			downloaderList.get(i).resume();
 		}
 
 		// this.noOfWorkers = noOfThreads;
@@ -135,9 +138,7 @@ public class ThreadManager {
 		this.names = names;
 		this.noOfWorkers = noOfThreads;
 		this.files = files;
-		
-		
-		
+
 		for (int i = 0; i < files.length; i++) {
 			if (names.contains(files[i].getName())) {
 				FTPLogin ftpLogin = new FTPLogin(downloader.getServer(), 21);
@@ -145,13 +146,24 @@ public class ThreadManager {
 
 				ThreadToGUI displayer = new ThreadToGUI(display, customTable);
 				Downloader downloader = new Downloader(displayer, ftpLogin.getFtpClient(), files[i], path);
-				threadPool.addToTaskQueue(new Task(downloader));
 				downloaderList.add(downloader);
+				//if (downloaderList.size() < noOfThreads) {
+					Task task = new Task(downloader);
+					System.out.println("AAAAAAAAA: " + isPaused);
+					if (isPaused) {
+						task.pause();
+					}
+					
+					threadPool.execute(task);
+				//} else {
+					//threadPool.addToTaskQueue(new Task(downloader));
+					//downloaderList.add(downloader);
+				//}
+
 			}
 		}
 
-
-		//init();
+		// init();
 
 	}
 

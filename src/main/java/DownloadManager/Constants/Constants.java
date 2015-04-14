@@ -1,4 +1,4 @@
-package DownloadManager.Constants;
+package downloadmanager.constants;
 
 
 public class Constants {

@@ -1,4 +1,4 @@
-package DownloadManager.GUI;
+package downloadmanager.gui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,9 +21,9 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.log4j.Logger;
 
-import DownloadManager.FTPLogin;
-import DownloadManager.ThreadManager;
-import DownloadManager.Constants.Constants;
+import downloadmanager.FTPLogin;
+import downloadmanager.ThreadManager;
+import downloadmanager.constants.Constants;
 
 /**
  * 
@@ -102,7 +102,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 
 		runButton = new JButton(Constants.DOWNLOAD);
 		runButton.addActionListener(this);
-		runButton.setBounds(10, 225, 100, 25);
+		runButton.setBounds(10, 225, 120, 25);
 		runButton.setEnabled(false);
 		panel.add(runButton);
 

@@ -1,10 +1,10 @@
-package DownloadManager.ThreadPool;
+package downloadmanager.threadpool;
 
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.log4j.Logger;
 
-import Task.ITask;
+import downloadmanager.task.ITask;
 
 public class Pool extends Thread {
 	final static Logger logger = Logger.getLogger(Pool.class);

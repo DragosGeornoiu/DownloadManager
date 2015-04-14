@@ -1,6 +1,6 @@
-package Task;
+package downloadmanager.task;
 
-import DownloadManager.Downloader;
+import downloadmanager.Downloader;
 
 public class Task implements ITask {
 
@@ -35,7 +35,7 @@ public class Task implements ITask {
 
 	@Override
 	public void pause() {
-		downloadThread.resume();
+		downloadThread.suspend();
 	}
 	
 	
