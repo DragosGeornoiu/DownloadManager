@@ -16,8 +16,8 @@ import downloadmanager.constants.Constants;
 
 /**
  * 
- * Downloader is responsible for downloading a file from the given ftpClient and post
- * in the textArea intermediate results.
+ * Downloader is responsible for downloading a file from the given ftpClient and
+ * post in the textArea intermediate results.
  *
  */
 public class Downloader {
@@ -36,7 +36,7 @@ public class Downloader {
 		this.ftpClient = ftpClient;
 		this.remoteFile = file;
 		this.downloadTo = downloadTo;
-		
+
 	}
 
 	public void execute() {
@@ -71,7 +71,7 @@ public class Downloader {
 					if ((localFile.length() == file.getSize())) {
 						int index = displayer.getIndexWhere(file.getName());
 						if (index != -1) {
-							displayer.appendToProgress("100% already", index);
+							displayer.appendToProgress("100%", index);
 							displayer.appendToTextArea(file.getName() + Constants.FILE_ALREADY_DOWNLOADED);
 						}
 					} else {
@@ -96,7 +96,7 @@ public class Downloader {
 	 * @param path
 	 *            the path to that file on the server.
 	 */
-	public void downloadSingleFile(String to, FTPFile file, String path) {
+	public void downloadSingleFile(String to, final FTPFile file, String path) {
 		BufferedInputStream inputStream = null;
 		BufferedOutputStream outputStream = null;
 		File localFile = new File(to, file.getName());
@@ -115,6 +115,14 @@ public class Downloader {
 			long whatSize = file.getSize();
 			byte[] data = new byte[Constants.KBYTE];
 			while (size < whatSize) {
+				
+				// nu se apeleaza niciodata
+				if (!ftpClient.isConnected()) {
+					ftpClient.connect("localhost", 21);
+					ftpClient.login("user", "password");
+				}
+				
+				
 				read = inputStream.read(data);
 				if (read != -1) {
 					size += read;
@@ -124,15 +132,35 @@ public class Downloader {
 						alreadyDownloaded = (int) (size * 100 / whatSize);
 						final int index = displayer.getIndexWhere(file.getName());
 						if (index != -1) {
-							
+
 							SwingUtilities.invokeLater(new Runnable() {
-							    public void run() {
-							    	displayer.appendToProgress(alreadyDownloaded + "%", index);
-							    }
+								public void run() {
+									displayer.appendToProgress(alreadyDownloaded + "%", index);
+								}
 							});
-							
+
 						}
 					}
+				} else {
+					
+					//popup here
+					ftpClient.connect("localhost", 21);
+					ftpClient.login("user", "password");
+					inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(file.getName()));
+					outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
+					size = 0;
+
+					alreadyDownloaded = 0;
+					SwingUtilities.invokeLater(new Runnable() {
+						final int index = displayer.getIndexWhere(file.getName());
+						public void run() {
+							displayer.appendToProgress("", index);
+							
+						}
+					});
+					
+					
+					System.out.println("AAAAAAAAAAAAAAAAAA");
 				}
 
 				synchronized (this) {
@@ -147,9 +175,11 @@ public class Downloader {
 
 			if (file.getSize() == localFile.length() && remainingInDirectory == 0) {
 				displayer.appendToTextArea(Constants.FINISHED_DOWNLOADING + path + "/" + file.getName());
+				ftpClient.logout();
+				ftpClient.disconnect();
 			}
 
-			if (!ftpClient.completePendingCommand()) {
+			if (ftpClient.isConnected() && !ftpClient.completePendingCommand()) {
 				ftpClient.logout();
 				ftpClient.disconnect();
 				logger.error(Constants.FILE_TRANSFER_FAILED);
@@ -275,7 +305,7 @@ public class Downloader {
 		suspended = false;
 		notify();
 	}
-	
+
 	public boolean isSuspended() {
 		return suspended;
 	}

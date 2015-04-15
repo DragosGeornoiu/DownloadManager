@@ -22,7 +22,7 @@ public class Constants {
 	public static final String INVALID_NUMBER_OF_THREADS_RED = "<html><font color='red'>Invalid number of threads. Selcted default 5.</font></html>";
 	public static final String HOSTNAME_LABEL = "Host: ";
 	public static final String USER = "Username: ";
-	public static final String LOGIN_BUTTON = "login";
+	public static final String LOGIN_BUTTON = "Connect";
 	public static final String LOGIN_NOT_SUCCESSFULL = "<html><font color='red'>The credentials didn't check out</font></html>";
 	public static final String FINISHED_DOWNLOADING = "Finished downloading ";
 	public static final String FTPCLIENT_NOT_INIT = "ftpCliend not initialised";

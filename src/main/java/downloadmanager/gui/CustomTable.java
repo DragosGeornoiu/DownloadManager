@@ -93,6 +93,7 @@ public class CustomTable extends JPanel {
 				if (column == Constants.CHECK_COLUMN_POSITION) {
 					String progress = (String) getValueAt(row, column + 1); 
 					if (!(progress.isEmpty() || progress == null) && (progress.equals(Constants.FULL_PROGRESS))) {
+							setValueAt(true, row, column);
 							return false;
 					}
 				}

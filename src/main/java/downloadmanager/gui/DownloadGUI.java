@@ -1,6 +1,5 @@
 package downloadmanager.gui;
 
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -14,12 +13,12 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.log4j.Logger;
 
@@ -38,7 +37,15 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	final static Logger logger = Logger.getLogger(DownloadGUI.class);
 	private static final long serialVersionUID = 1L;
 
+	private JTextField hostnameText;
+	private JTextField userText;
+	private JPasswordField passwordText;
+	private JTextField portText;
 	private FTPLogin ftpLogin;
+	JButton connectButton;
+	private JLabel loginErrorLabel;
+	private JLabel notConectedLabel;
+
 	private JScrollPane scroll;
 	private JTextArea display;
 	private JButton selectPathButton;
@@ -58,11 +65,10 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	private JPanel panel;
 	private ThreadManager workerManager;
 
-	public DownloadGUI(FTPLogin downloader) {
+	public DownloadGUI() {
 		super("DownloadGUI");
 		this.setResizable(false);
-		this.ftpLogin = downloader;
-		this.setSize(820, 620);
+		this.setSize(820, 750);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		panel = new JPanel();
@@ -78,21 +84,62 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		logger.info("Placing components on the panel.");
 		panel.setLayout(null);
 
-		JLabel hostnameLabel = new JLabel();
+		notConectedLabel = new JLabel("NOT CONNECTED TO ANY SERVER");
+		notConectedLabel.setBounds(450, 280, 450, 500);
+		panel.add(notConectedLabel);
+
+		JLabel hostnameLabel = new JLabel("Host:");
 		hostnameLabel.setBounds(10, 10, 160, 25);
 		panel.add(hostnameLabel);
 
+		hostnameText = new JTextField(20);
+		hostnameText.setBounds(40, 10, 100, 25);
+		panel.add(hostnameText);
+
+		JLabel userLabel = new JLabel("Username:");
+		userLabel.setBounds(150, 10, 160, 25);
+		panel.add(userLabel);
+
+		userText = new JTextField(20);
+		userText.setBounds(215, 10, 100, 25);
+		panel.add(userText);
+
+		JLabel passwordLabel = new JLabel(Constants.PASSWORD_LABEL);
+		passwordLabel.setBounds(325, 10, 160, 25);
+		panel.add(passwordLabel);
+
+		passwordText = new JPasswordField(20);
+		passwordText.setBounds(390, 10, 100, 25);
+		panel.add(passwordText);
+
+		JLabel portLabel = new JLabel("Port:");
+		portLabel.setBounds(500, 10, 160, 25);
+		panel.add(portLabel);
+
+		portText = new JTextField(20);
+		portText.setBounds(530, 10, 100, 25);
+		panel.add(portText);
+
+		connectButton = new JButton(Constants.LOGIN_BUTTON);
+		connectButton.setBounds(650, 10, 100, 25);
+		panel.add(connectButton);
+		connectButton.addActionListener(this);
+
+		loginErrorLabel = new JLabel("");
+		loginErrorLabel.setBounds(10, 50, 500, 25);
+		panel.add(loginErrorLabel);
+
 		selectPathButton = new JButton(Constants.PATH_LABEL);
 		selectPathButton.addActionListener(this);
-		selectPathButton.setBounds(10, 50, 100, 25);
+		selectPathButton.setBounds(10, 180, 100, 25);
 		panel.add(selectPathButton);
 
 		pathLabel = new JLabel(Constants.NO_PATH_SELECTED);
-		pathLabel.setBounds(10, 90, 250, 25);
+		pathLabel.setBounds(10, 220, 250, 25);
 		panel.add(pathLabel);
 
 		JLabel threads = new JLabel(Constants.NUMBER_OF_THREADS_LABEL);
-		threads.setBounds(10, 130, 100, 25);
+		threads.setBounds(10, 260, 100, 25);
 		panel.add(threads);
 
 		// noOfThreadsTextField = new JTextField();
@@ -102,43 +149,33 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		for (int i = 1; i <= 10; i++) {
 			noOfThreadsComboBox.addItem(i);
 		}
-		noOfThreadsComboBox.setBounds(150, 130, 40, 50);
+		noOfThreadsComboBox.setBounds(150, 260, 40, 50);
 		noOfThreadsComboBox.setEditable(false);
 		panel.add(noOfThreadsComboBox);
 
 		errorLabel = new JLabel("");
-		errorLabel.setBounds(10, 160, 160, 25);
+		errorLabel.setBounds(10, 290, 160, 25);
 		panel.add(errorLabel);
 
 		runButton = new JButton(Constants.DOWNLOAD);
 		runButton.addActionListener(this);
-		runButton.setBounds(10, 225, 120, 25);
+		runButton.setBounds(10, 355, 120, 25);
 		runButton.setEnabled(false);
 		panel.add(runButton);
 
 		pauseButton = new JButton(Constants.PAUSE);
 		pauseButton.addActionListener(this);
-		pauseButton.setBounds(130, 225, 100, 25);
+		pauseButton.setBounds(130, 355, 100, 25);
 		panel.add(pauseButton);
 
 		refreshButton = new JButton(Constants.REFRESH);
 		refreshButton.addActionListener(this);
-		refreshButton.setBounds(350, 10, 100, 25);
+		refreshButton.setBounds(350, 140, 100, 25);
 		// panel.add(refreshButton);
-
-		allCheckBox = new JCheckBox(Constants.SELECT_ALL);
-		allCheckBox.setBounds(590, 25, 100, 25);
-		allCheckBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				customTable.setAllCheckBoxes(allCheckBox.isSelected());
-			}
-		});
-		panel.add(allCheckBox);
 
 		clearButton = new JButton(Constants.CLEAR);
 		clearButton.addActionListener(this);
-		clearButton.setBounds(90, 500, 100, 25);
+		clearButton.setBounds(90, 630, 100, 25);
 		panel.add(clearButton);
 
 		display = new JTextArea();
@@ -146,10 +183,21 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		scroll = new JScrollPane(display, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 
-		scroll.setBounds(10, 260, 270, 230);
+		scroll.setBounds(10, 390, 270, 230);
 		panel.add(scroll);
+		
+		allCheckBox = new JCheckBox(Constants.SELECT_ALL);
+		allCheckBox.setBounds(590, 155, 100, 25);
+		allCheckBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				customTable.setAllCheckBoxes(allCheckBox.isSelected());
+			}
+		});
+		allCheckBox.setVisible(false);
+		panel.add(allCheckBox);
 
-		initialiseTable();
+		// initialiseTable(ftpLogin);
 	}
 
 	/**
@@ -158,11 +206,12 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	 * or not), size and a column of checkBoxes to check if you want to download
 	 * it or not.
 	 */
-	private void initialiseTable() {
+	private void initialiseTable(FTPLogin ftpLogin) {
 		logger.info("Initialising the table");
+		
 		files = new FTPFile[] {};
 		try {
-			files = getFiles();
+			files = getFiles(ftpLogin);
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 		}
@@ -189,8 +238,8 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				Constants.TABLE_COLUMN_CHECK, Constants.TABLE_COLUMN_PROGRESS };
 
 		customTable = new CustomTable(columns, names, types, sizes);
-		customTable.setBounds(300, 50, 450, 500);
-
+		customTable.setBounds(300, 180, 450, 500);
+		customTable.setVisible(false);
 		panel.revalidate();
 		panel.repaint();
 		panel.add(customTable);
@@ -205,9 +254,9 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	 *             if an I/O error occurs while either sending a command to the
 	 *             server or receiving a reply from the server.
 	 */
-	private FTPFile[] getFiles() throws IOException {
-		ftpLogin.setFtpClient(new FTPClient());
-		ftpLogin.login(ftpLogin.getUser(), ftpLogin.getPassword());
+	private FTPFile[] getFiles(FTPLogin ftpLogin) throws IOException {
+		//ftpLogin.setFtpClient(new FTPClient());
+		//ftpLogin.login(ftpLogin.getUser(), ftpLogin.getPassword());
 		return ftpLogin.getFtpClient().listFiles();
 	}
 
@@ -227,23 +276,17 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			// The download of the selected files starts.
 
 			if (runButton.getText().equals(Constants.DOWNLOAD)) {
-				noOfThreadsComboBox.setEnabled(false);
-				runButton.setText(Constants.ADD_TO_QUEUE);
-				pauseButton.setText(Constants.PAUSE);
 				// if (noOfThreadsTextField.getText().trim().isEmpty()) {
 				noOfThreads = (Integer) noOfThreadsComboBox.getSelectedItem();
-				if (noOfThreads <= 0 ) {
+				if (noOfThreads <= 0) {
 					setErrorLabel();
 				}
-				/*} else {
-					try {
-						noOfThreads = Integer.parseInt(noOfThreadsTextField.getText());
-						errorLabel.setText("");
-					} catch (Exception ex) {
-						logger.error(ex.getMessage());
-						setErrorLabel();
-					}
-				}*/
+				/*
+				 * } else { try { noOfThreads =
+				 * Integer.parseInt(noOfThreadsTextField.getText());
+				 * errorLabel.setText(""); } catch (Exception ex) {
+				 * logger.error(ex.getMessage()); setErrorLabel(); } }
+				 */
 
 				if (noOfThreads <= 0) {
 					setErrorLabel();
@@ -260,14 +303,20 @@ public class DownloadGUI extends JFrame implements ActionListener {
 					}
 				}
 
-				// nu ar trebui sa fac o noua instanta a threadManager la
-				// fiecare download, ci sa o folosesc pe cea precedenta
-				if (workerManager == null) {
-					workerManager = new ThreadManager(noOfThreadsComboBox, runButton, customTable, display,
-							noOfThreads, names, files, ftpLogin, path);
-					workerManager.init();
-				} else {
-					workerManager.update(customTable, display, noOfThreads, names, files, ftpLogin, path);
+				if (names.size() != 0) {
+					noOfThreadsComboBox.setEnabled(false);
+					runButton.setText(Constants.ADD_TO_QUEUE);
+					pauseButton.setText(Constants.PAUSE);
+
+					// nu ar trebui sa fac o noua instanta a threadManager la
+					// fiecare download, ci sa o folosesc pe cea precedenta
+					if (workerManager == null) {
+						workerManager = new ThreadManager(noOfThreadsComboBox, runButton, customTable, display,
+								noOfThreads, names, files, ftpLogin, path);
+						workerManager.init();
+					} else {
+						workerManager.update(customTable, display, noOfThreads, names, files, ftpLogin, path);
+					}
 				}
 			} else if (runButton.getText().equals(Constants.ADD_TO_QUEUE)) {
 				List<String> names = new ArrayList<String>();
@@ -288,7 +337,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			// refreshes the table of data to be downloaded, a new file might of
 			// been added there and we shouldn't have to close the application
 			// to see it.
-			initialiseTable();
+			initialiseTable(ftpLogin);
 			allCheckBox.setSelected(false);
 		} else if (e.getSource() == clearButton) {
 			logger.info("Clear button was pressed.");
@@ -301,7 +350,10 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				logger.info("Pause button was pressed.");
 				display.append(Constants.PAUSE_MESSAGE + "\n");
 				pauseButton.setText(Constants.RESUME);
-				workerManager.pause();
+
+				if (workerManager != null) {
+					workerManager.pause();
+				}
 
 				// resumes the download.
 			} else if (pauseButton.getText().equals(Constants.RESUME)) {
@@ -319,7 +371,59 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				// setErrorLabel();
 				// }
 				// noOfThreads
-				workerManager.resume();
+
+				if (workerManager != null) {
+					workerManager.resume();
+				}
+			}
+		} else if (e.getSource() == connectButton) {
+			logger.info("Login button was pressed");
+			if (connectButton.getText().equals("Connect")) {
+				try {
+					ftpLogin = new FTPLogin(hostnameText.getText(), Integer.parseInt(portText.getText()));
+					if (ftpLogin.login(userText.getText(), new String(passwordText.getPassword()))) {
+						// this.setEnabled(false);
+						// new DownloadGUI(ftpLogin);
+						loginErrorLabel.setText("<html><font color='green'>Connected...</font></html>");
+						connectButton.setText("Disconnect");
+
+						hostnameText.setEditable(false);
+						userText.setEditable(false);
+						passwordText.setEditable(false);
+						portText.setEditable(false);
+
+						initialiseTable(ftpLogin);
+						notConectedLabel.setVisible(false);
+						customTable.setVisible(true);
+						allCheckBox.setVisible(true);
+					} else {
+						logger.error(ftpLogin.getFtpClient().getReplyString());
+						loginErrorLabel.setText(ftpLogin.getFtpClient().getReplyString());
+					}
+
+				} catch (Exception ex) {
+					loginErrorLabel
+							.setText("<html><font color='red'>Problems logging in. Check again your credentials.</font></html>");
+				}
+			} else if (connectButton.getText().equals("Disconnect")) {
+				try {
+					ftpLogin.getFtpClient().logout();
+					ftpLogin.getFtpClient().disconnect();
+					
+					connectButton.setText("Connect");
+					hostnameText.setEditable(true);
+					userText.setEditable(true);
+					passwordText.setEditable(true);
+					portText.setEditable(true);
+					loginErrorLabel.setText("<html><font color='green'>Disconnected...</font></html>");
+
+					notConectedLabel.setVisible(true);
+					customTable.setVisible(false);
+					allCheckBox.setVisible(false);
+				} catch (IOException e1) {
+					loginErrorLabel
+							.setText("<html><font color='red'>Problem logging out. Please try again...</font></html>");
+				}
 			}
 		}
 
@@ -332,7 +436,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	 */
 	private void setErrorLabel() {
 		noOfThreads = Constants.DEFAULT_NUMBER_OF_THREADS;
-		//noOfThreadsTextField.setText(Integer.toString(noOfThreads));
+		// noOfThreadsTextField.setText(Integer.toString(noOfThreads));
 		noOfThreadsComboBox.setSelectedIndex(Constants.DEFAULT_NUMBER_OF_THREADS - 1);
 		errorLabel.setText(Constants.INVALID_NUMBER_OF_THREADS_RED);
 	}

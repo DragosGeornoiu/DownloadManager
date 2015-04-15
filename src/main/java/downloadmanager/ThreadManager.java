@@ -6,7 +6,6 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.log4j.Logger;
@@ -29,7 +28,7 @@ public class ThreadManager {
 	private List<Downloader> downloaderList;
 	private FTPFile[] files;
 	private List<String> names;
-	private FTPLogin downloader;
+	private FTPLogin ftpLogin;
 	private CustomTable customTable;
 	private String path;
 	private ThreadPool threadPool;
@@ -38,13 +37,13 @@ public class ThreadManager {
 	boolean isPaused;
 
 	public ThreadManager(JComboBox<Integer> noOfThreadsTextField, JButton downloadButton, CustomTable customTable,
-			JTextArea display, int noOfThreads, List<String> names, FTPFile[] files, FTPLogin downloader, String path) {
+			JTextArea display, int noOfThreads, List<String> names, FTPFile[] files, FTPLogin ftpLogin, String path) {
 		this.customTable = customTable;
 		this.display = display;
 		this.noOfWorkers = noOfThreads;
 		this.files = files;
 		this.names = names;
-		this.downloader = downloader;
+		this.ftpLogin = ftpLogin;
 		this.path = path;
 		this.downloadButton = downloadButton;
 		this.displayNoOfThreads = noOfThreadsTextField;
@@ -61,11 +60,11 @@ public class ThreadManager {
 
 		for (int i = 0; i < files.length; i++) {
 			if (names.contains(files[i].getName())) {
-				FTPLogin ftpLogin = new FTPLogin(downloader.getServer(), 21);
-				ftpLogin.login(downloader.getUser(), downloader.getPassword());
+				FTPLogin loginFtp = new FTPLogin(ftpLogin.getServer(), 21);
+				loginFtp.login(ftpLogin.getUser(), ftpLogin.getPassword());
 
 				ThreadToGUI displayer = new ThreadToGUI(display, customTable);
-				downloaderList.add(new Downloader(displayer, ftpLogin.getFtpClient(), files[i], path));
+				downloaderList.add(new Downloader(displayer, loginFtp.getFtpClient(), files[i], path));
 			}
 		}
 
@@ -117,7 +116,7 @@ public class ThreadManager {
 		this.noOfWorkers = noOfThreads;
 		this.files = files;
 		this.names = names;
-		this.downloader = downloader;
+		this.ftpLogin = downloader;
 		this.path = path;
 
 		init();
@@ -142,11 +141,11 @@ public class ThreadManager {
 
 		for (int i = 0; i < files.length; i++) {
 			if (names.contains(files[i].getName())) {
-				FTPLogin ftpLogin = new FTPLogin(downloader.getServer(), 21);
-				ftpLogin.login(downloader.getUser(), downloader.getPassword());
+				FTPLogin loginFtp = new FTPLogin(ftpLogin.getServer(), 21);
+				loginFtp.login(ftpLogin.getUser(), ftpLogin.getPassword());
 
 				ThreadToGUI displayer = new ThreadToGUI(display, customTable);
-				Downloader downloader = new Downloader(displayer, ftpLogin.getFtpClient(), files[i], path);
+				Downloader downloader = new Downloader(displayer, loginFtp.getFtpClient(), files[i], path);
 				downloaderList.add(downloader);
 				//if (downloaderList.size() < noOfThreads) {
 					Task task = new Task(downloader);
@@ -162,9 +161,7 @@ public class ThreadManager {
 
 			}
 		}
-
 		// init();
-
 	}
 
 }

@@ -1,6 +1,6 @@
 import org.apache.log4j.Logger;
 
-import downloadmanager.gui.LoginGUI;
+import downloadmanager.gui.DownloadGUI;
 
 
 public class DownloadManager {
@@ -8,6 +8,6 @@ public class DownloadManager {
 	
 	public static void main(String[] args) {
 		logger.info("Starting Download Manager application");
-		new LoginGUI();
+		new DownloadGUI();
 	}
 }
