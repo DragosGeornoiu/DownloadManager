@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
@@ -33,10 +34,10 @@ public class ThreadManager {
 	private String path;
 	private ThreadPool threadPool;
 	private JButton downloadButton;
-	private JTextField displayNoOfThreads;
+	private JComboBox<Integer> displayNoOfThreads;
 	boolean isPaused;
 
-	public ThreadManager(JTextField displayNoOfThreads, JButton downloadButton, CustomTable customTable,
+	public ThreadManager(JComboBox<Integer> noOfThreadsTextField, JButton downloadButton, CustomTable customTable,
 			JTextArea display, int noOfThreads, List<String> names, FTPFile[] files, FTPLogin downloader, String path) {
 		this.customTable = customTable;
 		this.display = display;
@@ -46,7 +47,7 @@ public class ThreadManager {
 		this.downloader = downloader;
 		this.path = path;
 		this.downloadButton = downloadButton;
-		this.displayNoOfThreads = displayNoOfThreads;
+		this.displayNoOfThreads = noOfThreadsTextField;
 	}
 
 	/**
@@ -123,11 +124,11 @@ public class ThreadManager {
 	}
 
 	public void setDownloadButton() {
-		if (downloadButton.getText().equals("Download")) {
+		if (downloadButton.getText().equals(Constants.DOWNLOAD)) {
 			downloadButton.setText(Constants.ADD_TO_QUEUE);
 		} else {
 			downloadButton.setText(Constants.DOWNLOAD);
-			displayNoOfThreads.setEditable(true);
+			displayNoOfThreads.setEnabled(true);
 		}
 
 	}

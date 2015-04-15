@@ -1,5 +1,6 @@
 package downloadmanager.gui;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -8,6 +9,7 @@ import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -43,7 +45,8 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	private JLabel pathLabel;
 	private String path;
 	private JLabel errorLabel;
-	private JTextField noOfThreadsTextField;
+	// private JTextField noOfThreadsTextField;
+	private JComboBox<Integer> noOfThreadsComboBox;
 	private JButton runButton;
 	private JButton refreshButton;
 	private JButton clearButton;
@@ -92,9 +95,16 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		threads.setBounds(10, 130, 100, 25);
 		panel.add(threads);
 
-		noOfThreadsTextField = new JTextField();
-		noOfThreadsTextField.setBounds(150, 130, 30, 26);
-		panel.add(noOfThreadsTextField);
+		// noOfThreadsTextField = new JTextField();
+		noOfThreadsComboBox = new JComboBox<Integer>();
+		noOfThreadsComboBox.setSize(100, 100);
+
+		for (int i = 1; i <= 10; i++) {
+			noOfThreadsComboBox.addItem(i);
+		}
+		noOfThreadsComboBox.setBounds(150, 130, 40, 50);
+		noOfThreadsComboBox.setEditable(false);
+		panel.add(noOfThreadsComboBox);
 
 		errorLabel = new JLabel("");
 		errorLabel.setBounds(10, 160, 160, 25);
@@ -217,12 +227,15 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			// The download of the selected files starts.
 
 			if (runButton.getText().equals(Constants.DOWNLOAD)) {
-				noOfThreadsTextField.setEditable(false);
+				noOfThreadsComboBox.setEnabled(false);
 				runButton.setText(Constants.ADD_TO_QUEUE);
 				pauseButton.setText(Constants.PAUSE);
-				if (noOfThreadsTextField.getText().trim().isEmpty()) {
+				// if (noOfThreadsTextField.getText().trim().isEmpty()) {
+				noOfThreads = (Integer) noOfThreadsComboBox.getSelectedItem();
+				if (noOfThreads <= 0 ) {
 					setErrorLabel();
-				} else {
+				}
+				/*} else {
 					try {
 						noOfThreads = Integer.parseInt(noOfThreadsTextField.getText());
 						errorLabel.setText("");
@@ -230,7 +243,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 						logger.error(ex.getMessage());
 						setErrorLabel();
 					}
-				}
+				}*/
 
 				if (noOfThreads <= 0) {
 					setErrorLabel();
@@ -240,7 +253,9 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				// List<JCheckBox> checkBoxes = customTable.getCheckBoxes();
 
 				for (int i = 0; i < customTable.getSizeOfElements(); i++) {
-					if ((Boolean) customTable.retVal(i, 3) == true) {
+					if (((Boolean) customTable.retVal(i, Constants.CHECK_COLUMN_POSITION) == true)
+							&& !(((String) customTable.retVal(i, Constants.PROGRESS_COLUMN_POSITION))
+									.equals(Constants.FULL_PROGRESS))) {
 						names.add((String) customTable.retVal(i, 0));
 					}
 				}
@@ -248,7 +263,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				// nu ar trebui sa fac o noua instanta a threadManager la
 				// fiecare download, ci sa o folosesc pe cea precedenta
 				if (workerManager == null) {
-					workerManager = new ThreadManager(noOfThreadsTextField, runButton, customTable, display,
+					workerManager = new ThreadManager(noOfThreadsComboBox, runButton, customTable, display,
 							noOfThreads, names, files, ftpLogin, path);
 					workerManager.init();
 				} else {
@@ -259,7 +274,9 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				// List<JCheckBox> checkBoxes = customTable.getCheckBoxes();
 
 				for (int i = 0; i < customTable.getSizeOfElements(); i++) {
-					if ((Boolean) customTable.retVal(i, 3) == true) {
+					if (((Boolean) customTable.retVal(i, Constants.CHECK_COLUMN_POSITION) == true)
+							&& !(((String) customTable.retVal(i, Constants.PROGRESS_COLUMN_POSITION))
+									.equals(Constants.FULL_PROGRESS))) {
 						names.add((String) customTable.retVal(i, 0));
 					}
 				}
@@ -315,7 +332,8 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	 */
 	private void setErrorLabel() {
 		noOfThreads = Constants.DEFAULT_NUMBER_OF_THREADS;
-		noOfThreadsTextField.setText(Integer.toString(noOfThreads));
+		//noOfThreadsTextField.setText(Integer.toString(noOfThreads));
+		noOfThreadsComboBox.setSelectedIndex(Constants.DEFAULT_NUMBER_OF_THREADS - 1);
 		errorLabel.setText(Constants.INVALID_NUMBER_OF_THREADS_RED);
 	}
 

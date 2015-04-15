@@ -1,6 +1,8 @@
 package downloadmanager.threadpool;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -14,7 +16,8 @@ public class ThreadPool {
 	final static Logger logger = Logger.getLogger(ThreadPool.class);
 
 	private BlockingQueue<ITask> taskQueue = null;
-	private List<Pool> threads;
+	// private List<Pool> threads;
+	Hashtable<Integer, Pool> threads;
 	private List<Pool> reusableThreads;
 	private boolean isStopped = false;
 	private int noOfThreads;
@@ -23,7 +26,8 @@ public class ThreadPool {
 	public ThreadPool(int noOfThreads, ThreadManager threadManager) {
 		logger.info("Thread Pool initialised with " + noOfThreads + " threads.");
 		taskQueue = new LinkedBlockingQueue<ITask>();
-		threads = new ArrayList<Pool>();
+		// threads = new ArrayList<Pool>();
+		threads = new Hashtable<Integer, Pool>();
 		this.noOfThreads = noOfThreads;
 		// inca o structura pt. a le memora pe cele deja initializate
 		reusableThreads = new ArrayList<Pool>();
@@ -53,14 +57,14 @@ public class ThreadPool {
 
 			if (threads.size() < noOfThreads) {
 				Pool pool = new Pool(taskQueue, this);
-				threads.add(pool);
+				threads.put(pool.getIdentificator(), pool);
 				pool.start();
 			}
 		} else {
 			// folosesc un thread din reusableThreads
 			Pool pool = reusableThreads.get(0);
 			reusableThreads.remove(0);
-			threads.add(pool);
+			threads.put(pool.getIdentificator(), pool);
 
 			synchronized (pool) {
 				pool.notify();
@@ -76,13 +80,16 @@ public class ThreadPool {
 
 	public void finishedRun(Pool ITask) {
 		reusableThreads.add(ITask);
-		for (int i = 0; i < threads.size(); i++) {
+		/*for (int i = 0; i < threads.size(); i++) {
+			// threads hashtable, identificator
 			Pool p = threads.get(i);
 			if (p.getIdentificator() == ITask.getIdentificator()) {
 				threads.remove(i);
 				break;
 			}
-		}
+		}*/
+		
+		threads.remove(ITask.getIdentificator());
 
 		if (threads.size() == 0) {
 			// poti sa downloadezi din nou
@@ -93,9 +100,17 @@ public class ThreadPool {
 	public synchronized void stop() {
 		logger.info("stop() method called.");
 		this.isStopped = true;
-		for (Pool thread : threads) {
-			thread.doStop();
+
+		Enumeration<Integer> enumKey = threads.keys();
+		while (enumKey.hasMoreElements()) {
+			Integer key = enumKey.nextElement();
+			Pool val = threads.get(key);
+			val.doStop();
 		}
+
+		/*for (Pool thread : threads) {
+			thread.doStop();
+		}*/
 	}
 
 	public int getNoOfThreads() {
@@ -135,14 +150,15 @@ public class ThreadPool {
 					for (int i = 0; i < size - noOfThreads; i++) {
 						System.out.println("i: " + i);
 						System.out.println("Trying to remove: " + reusableThreads.size());
-						Pool p = reusableThreads.remove(0); //reusableThreads.get(0); reusableThreads.remove(0);
+						Pool p = reusableThreads.remove(0); // reusableThreads.get(0);
+															// reusableThreads.remove(0);
 						try {
-						
-						} catch (Exception e){
+
+						} catch (Exception e) {
 							e.printStackTrace();
 						}
 						System.out.println("The item that we tried to remove: " + p);
-						// p.kill();
+						p.kill();
 						// synchronized (p) {
 						// p.notify();
 						// }
@@ -160,10 +176,11 @@ public class ThreadPool {
 					while (reusableThreads.size() != 0) {
 						Pool p = reusableThreads.get(0);
 						reusableThreads.remove(0);
+						p.kill();
 						/*
 						 * p.kill(); synchronized (p) { p.notify(); }
 						 */
-						//p.doStop();
+						// p.doStop();
 					}
 
 					int i = 0;
@@ -179,11 +196,12 @@ public class ThreadPool {
 						taskQueue.add(pool.getTask());
 						threads.remove(0);
 						System.out.println("after taskQueue: " + taskQueue.size());
+						pool.kill();
 						// pool.kill();
 						// synchronized (pool) {
 						// pool.notify();
 						// }
-						//pool.doStop();
+						// pool.doStop();
 						i++;
 					}
 				}

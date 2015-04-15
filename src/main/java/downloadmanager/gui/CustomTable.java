@@ -85,6 +85,21 @@ public class CustomTable extends JPanel {
 					return Boolean.class;
 				}
 			}
+
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				// TODO Auto-generated method stub
+
+				if (column == Constants.CHECK_COLUMN_POSITION) {
+					String progress = (String) getValueAt(row, column + 1); 
+					if (!(progress.isEmpty() || progress == null) && (progress.equals(Constants.FULL_PROGRESS))) {
+							return false;
+					}
+				}
+
+				return super.isCellEditable(row, column);
+			}
+
 		};
 
 		// table.setAutoCreateRowSorter(true);
@@ -110,7 +125,7 @@ public class CustomTable extends JPanel {
 					} else if (value1 < value2) {
 						return -1;
 					}
-						return 0;
+					return 0;
 				} else {
 					int index;
 					for (index = 0; index < sizes.size(); index++) {
@@ -201,6 +216,7 @@ public class CustomTable extends JPanel {
 			}
 			return track;
 		}
+
 	}
 
 	public int getSizeOfElements() {
@@ -226,8 +242,9 @@ public class CustomTable extends JPanel {
 
 	public void setAllCheckBoxes(boolean selected) {
 		for (int i = 0; i < sizeOfElements; i++) {
-			table.setValueAt(selected, i, Constants.CHECK_COLUMN_POSITION);
+			if (table.isCellEditable(i, Constants.CHECK_COLUMN_POSITION)) {
+				table.setValueAt(selected, i, Constants.CHECK_COLUMN_POSITION);
+			}
 		}
-
 	}
 }
