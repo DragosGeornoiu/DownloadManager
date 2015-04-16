@@ -225,7 +225,7 @@ public class Downloader {
 			 * logger.error(Constants.FILE_TRANSFER_FAILED); }
 			 */
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 			logger.error(e.getMessage());
 		}
 	}

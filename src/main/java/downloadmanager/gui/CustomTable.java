@@ -249,4 +249,10 @@ public class CustomTable extends JPanel {
 		}
 	}
 	
+	public void setAllProgressesToZero() {
+		for (int i = 0; i < sizeOfElements; i++) {
+				table.setValueAt("", i, Constants.PROGRESS_COLUMN_POSITION);
+		}
+	}
+	
 }

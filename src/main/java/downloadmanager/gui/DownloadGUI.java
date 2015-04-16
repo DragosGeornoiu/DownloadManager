@@ -70,7 +70,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	public DownloadGUI() {
 		super("DownloadGUI");
 		this.setResizable(false);
-		this.setSize(820, 750);
+		this.setSize(820, 620);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		panel = new JPanel();
@@ -87,7 +87,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		panel.setLayout(null);
 
 		notConectedLabel = new JLabel("NOT CONNECTED TO ANY SERVER");
-		notConectedLabel.setBounds(450, 280, 450, 500);
+		notConectedLabel.setBounds(450, 145, 450, 500);
 		panel.add(notConectedLabel);
 
 		JLabel hostnameLabel = new JLabel("Host:");
@@ -133,15 +133,15 @@ public class DownloadGUI extends JFrame implements ActionListener {
 
 		selectPathButton = new JButton(Constants.PATH_LABEL);
 		selectPathButton.addActionListener(this);
-		selectPathButton.setBounds(10, 180, 100, 25);
+		selectPathButton.setBounds(10, 95, 100, 25);
 		panel.add(selectPathButton);
 
 		pathLabel = new JLabel(Constants.NO_PATH_SELECTED);
-		pathLabel.setBounds(10, 220, 250, 25);
+		pathLabel.setBounds(10, 135, 250, 25);
 		panel.add(pathLabel);
 
 		JLabel threads = new JLabel(Constants.NUMBER_OF_THREADS_LABEL);
-		threads.setBounds(10, 260, 100, 25);
+		threads.setBounds(10, 175, 100, 25);
 		panel.add(threads);
 
 		// noOfThreadsTextField = new JTextField();
@@ -151,33 +151,33 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		for (int i = 1; i <= 10; i++) {
 			noOfThreadsComboBox.addItem(i);
 		}
-		noOfThreadsComboBox.setBounds(150, 260, 40, 50);
+		noOfThreadsComboBox.setBounds(95, 175, 50, 30);
 		noOfThreadsComboBox.setEditable(false);
 		panel.add(noOfThreadsComboBox);
 
 		errorLabel = new JLabel("");
-		errorLabel.setBounds(10, 290, 160, 25);
+		errorLabel.setBounds(10, 205, 160, 25);
 		panel.add(errorLabel);
 
 		runButton = new JButton(Constants.DOWNLOAD);
 		runButton.addActionListener(this);
-		runButton.setBounds(10, 355, 120, 25);
+		runButton.setBounds(10, 270, 120, 25);
 		runButton.setEnabled(false);
 		panel.add(runButton);
 
 		pauseButton = new JButton(Constants.PAUSE);
 		pauseButton.addActionListener(this);
-		pauseButton.setBounds(130, 355, 100, 25);
+		pauseButton.setBounds(130, 270, 120, 25);
 		panel.add(pauseButton);
 
 		refreshButton = new JButton(Constants.REFRESH);
 		refreshButton.addActionListener(this);
-		refreshButton.setBounds(350, 140, 100, 25);
+		refreshButton.setBounds(350, 55, 100, 25);
 		// panel.add(refreshButton);
 
 		clearButton = new JButton(Constants.CLEAR);
 		clearButton.addActionListener(this);
-		clearButton.setBounds(90, 630, 100, 25);
+		clearButton.setBounds(90, 545, 100, 25);
 		panel.add(clearButton);
 
 		display = new JTextArea();
@@ -185,11 +185,11 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		scroll = new JScrollPane(display, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 
-		scroll.setBounds(10, 390, 270, 230);
+		scroll.setBounds(10, 305, 270, 230);
 		panel.add(scroll);
 
 		allCheckBox = new JCheckBox(Constants.SELECT_ALL);
-		allCheckBox.setBounds(590, 155, 100, 25);
+		allCheckBox.setBounds(590, 65, 100, 25);
 		allCheckBox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -243,7 +243,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				Constants.TABLE_COLUMN_CHECK, Constants.TABLE_COLUMN_PROGRESS };
 
 		customTable = new CustomTable(columns, names, types, sizes);
-		customTable.setBounds(300, 180, 450, 500);
+		customTable.setBounds(300, 90, 450, 500);
 		customTable.setVisible(false);
 		panel.revalidate();
 		panel.repaint();
@@ -275,6 +275,9 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			} else {
 				pathLabel.setText(Constants.PATH_LABEL + ": " + path);
 				runButton.setEnabled(true);
+				if(customTable != null) {
+					customTable.setAllProgressesToZero();
+				}
 			}
 		} else if (e.getSource() == runButton) {
 			logger.info("Download button was pressed.");
@@ -381,8 +384,8 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			logger.info("Login button was pressed");
 			if (connectButton.getText().equals("Connect")) {
 				try {
-					ftpLogin = new FTPLogin(hostnameText.getText(), Integer.parseInt(portText.getText()));
-					if (ftpLogin.login(userText.getText(), new String(passwordText.getPassword()))) {
+					ftpLogin = new FTPLogin(hostnameText.getText().trim(), Integer.parseInt(portText.getText().trim()));
+					if (ftpLogin.login(userText.getText().trim(), new String(passwordText.getPassword()))) {
 						loginErrorLabel.setText("<html><font color='green'>Connected...</font></html>");
 						connectButton.setText("Disconnect");
 
@@ -399,10 +402,10 @@ public class DownloadGUI extends JFrame implements ActionListener {
 						logger.error(ftpLogin.getFtpClient().getReplyString());
 						if (ftpLogin.getFtpClient().getReplyString() != null) {
 							loginErrorLabel.setText("<html><font color='red'>"
-									+ ftpLogin.getFtpClient().getReplyString() + "</font></html>");
+									+ ftpLogin.getFtpClient().getReplyString().replaceAll("\\d","") + "</font></html>");
 						} else {
 							loginErrorLabel.setText("<html><font color='red'>"
-									+ "Problems with credentials Probably host or port not correct."
+									+ "Problems with credentials. Probably host or port fields are not correct."
 									+ "</font></html>");
 						}
 					}
@@ -425,7 +428,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 					
 				} catch (IOException e1) {
 					loginErrorLabel
-							.setText("<html><font color='red'>Logged out. But, your connect was closed previously to logging out...</font></html>");
+							.setText("<html><font color='red'>Logged out. But, your connection was closed previously to logging out...</font></html>");
 				} finally {
 					connectButton.setText("Connect");
 					hostnameText.setEditable(true);
