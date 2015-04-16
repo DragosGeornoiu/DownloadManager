@@ -90,13 +90,13 @@ public class CustomTable extends JPanel {
 			public boolean isCellEditable(int row, int column) {
 				// TODO Auto-generated method stub
 
-				if (column == Constants.CHECK_COLUMN_POSITION) {
+				/*if (column == Constants.CHECK_COLUMN_POSITION) {
 					String progress = (String) getValueAt(row, column + 1); 
 					if (!(progress.isEmpty() || progress == null) && (progress.equals(Constants.FULL_PROGRESS))) {
 							setValueAt(true, row, column);
 							return false;
 					}
-				}
+				}*/
 
 				return super.isCellEditable(row, column);
 			}

@@ -13,6 +13,8 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.apache.log4j.Logger;
 
 import downloadmanager.constants.Constants;
+import downloadmanager.gui.OverwriteGUI;
+import downloadmanager.gui.ReconnectGUI;
 
 /**
  * 
@@ -68,15 +70,38 @@ public class Downloader {
 				} else {
 					File localFile = new File(to, file.getName());
 
-					if ((localFile.length() == file.getSize())) {
-						int index = displayer.getIndexWhere(file.getName());
-						if (index != -1) {
-							displayer.appendToProgress("100%", index);
-							displayer.appendToTextArea(file.getName() + Constants.FILE_ALREADY_DOWNLOADED);
+					if (localFile.exists()) {
+
+						OverwriteGUI overwrite = new OverwriteGUI(file.getName(), localFile.length(), file.getSize());
+						while (!overwrite.isPressed()) {
+							try {
+								Thread.sleep(100);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+						}
+
+						if (overwrite.getWhatButtonWasPressed() == 1) {
+							downloadSingleFile(to, file, path);
+						} else {
+							int index = displayer.getIndexWhere(file.getName());
+							if (index != -1) {
+								displayer.appendToProgress("100%", index);
+								displayer.appendToTextArea(file.getName() + " was not ovewritten.");
+							}
 						}
 					} else {
 						downloadSingleFile(to, file, path);
 					}
+
+					/*
+					 * if ((localFile.length() == file.getSize())) { int index =
+					 * displayer.getIndexWhere(file.getName()); if (index != -1)
+					 * { displayer.appendToProgress("100%", index);
+					 * displayer.appendToTextArea(file.getName() +
+					 * Constants.FILE_ALREADY_DOWNLOADED); } } else {
+					 * downloadSingleFile(to, file, path); }
+					 */
 				}
 			} catch (Exception e) {
 				logger.error(e.getMessage());
@@ -115,14 +140,7 @@ public class Downloader {
 			long whatSize = file.getSize();
 			byte[] data = new byte[Constants.KBYTE];
 			while (size < whatSize) {
-				
-				// nu se apeleaza niciodata
-				if (!ftpClient.isConnected()) {
-					ftpClient.connect("localhost", 21);
-					ftpClient.login("user", "password");
-				}
-				
-				
+
 				read = inputStream.read(data);
 				if (read != -1) {
 					size += read;
@@ -142,25 +160,44 @@ public class Downloader {
 						}
 					}
 				} else {
-					
-					//popup here
-					ftpClient.connect("localhost", 21);
-					ftpClient.login("user", "password");
-					inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(file.getName()));
-					outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
-					size = 0;
 
-					alreadyDownloaded = 0;
-					SwingUtilities.invokeLater(new Runnable() {
-						final int index = displayer.getIndexWhere(file.getName());
-						public void run() {
-							displayer.appendToProgress("", index);
-							
+					ReconnectGUI reconnect = new ReconnectGUI(file.getName(), size, whatSize);
+					while (!reconnect.isPressed()) {
+						try {
+							Thread.sleep(100);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
 						}
-					});
-					
-					
-					System.out.println("AAAAAAAAAAAAAAAAAA");
+					}
+
+					if (reconnect.getWhatButtonWasPressed() == 1) {
+						ftpClient.connect("localhost", 21);
+						ftpClient.login("user", "password");
+						inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(file.getName()));
+						outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
+						size = 0;
+
+						alreadyDownloaded = 0;
+						SwingUtilities.invokeLater(new Runnable() {
+							final int index = displayer.getIndexWhere(file.getName());
+
+							public void run() {
+								displayer.appendToProgress("", index);
+
+							}
+						});
+					} else {
+						size = whatSize + 1;
+						SwingUtilities.invokeLater(new Runnable() {
+							final int index = displayer.getIndexWhere(file.getName());
+
+							public void run() {
+								displayer.appendToProgress("Failed", index);
+
+							}
+						});
+					}
+
 				}
 
 				synchronized (this) {
@@ -179,11 +216,12 @@ public class Downloader {
 				ftpClient.disconnect();
 			}
 
-			if (ftpClient.isConnected() && !ftpClient.completePendingCommand()) {
-				ftpClient.logout();
-				ftpClient.disconnect();
-				logger.error(Constants.FILE_TRANSFER_FAILED);
-			}
+			/*
+			 * if (ftpClient.isConnected() &&
+			 * !ftpClient.completePendingCommand()) { ftpClient.logout();
+			 * ftpClient.disconnect();
+			 * logger.error(Constants.FILE_TRANSFER_FAILED); }
+			 */
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error(e.getMessage());

@@ -296,9 +296,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				// List<JCheckBox> checkBoxes = customTable.getCheckBoxes();
 
 				for (int i = 0; i < customTable.getSizeOfElements(); i++) {
-					if (((Boolean) customTable.retVal(i, Constants.CHECK_COLUMN_POSITION) == true)
-							&& !(((String) customTable.retVal(i, Constants.PROGRESS_COLUMN_POSITION))
-									.equals(Constants.FULL_PROGRESS))) {
+					if (((Boolean) customTable.retVal(i, Constants.CHECK_COLUMN_POSITION) == true)) {
 						names.add((String) customTable.retVal(i, 0));
 					}
 				}
@@ -323,9 +321,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				// List<JCheckBox> checkBoxes = customTable.getCheckBoxes();
 
 				for (int i = 0; i < customTable.getSizeOfElements(); i++) {
-					if (((Boolean) customTable.retVal(i, Constants.CHECK_COLUMN_POSITION) == true)
-							&& !(((String) customTable.retVal(i, Constants.PROGRESS_COLUMN_POSITION))
-									.equals(Constants.FULL_PROGRESS))) {
+					if (((Boolean) customTable.retVal(i, Constants.CHECK_COLUMN_POSITION) == true)) {
 						names.add((String) customTable.retVal(i, 0));
 					}
 				}
