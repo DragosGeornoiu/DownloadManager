@@ -14,9 +14,11 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.net.ftp.FTPFile;
@@ -185,7 +187,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 
 		scroll.setBounds(10, 390, 270, 230);
 		panel.add(scroll);
-		
+
 		allCheckBox = new JCheckBox(Constants.SELECT_ALL);
 		allCheckBox.setBounds(590, 155, 100, 25);
 		allCheckBox.addActionListener(new ActionListener() {
@@ -196,6 +198,9 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		});
 		allCheckBox.setVisible(false);
 		panel.add(allCheckBox);
+
+		JRootPane rootPane = SwingUtilities.getRootPane(connectButton);
+		rootPane.setDefaultButton(connectButton);
 
 		// initialiseTable(ftpLogin);
 	}
@@ -208,7 +213,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	 */
 	private void initialiseTable(FTPLogin ftpLogin) {
 		logger.info("Initialising the table");
-		
+
 		files = new FTPFile[] {};
 		try {
 			files = getFiles(ftpLogin);
@@ -255,8 +260,8 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	 *             server or receiving a reply from the server.
 	 */
 	private FTPFile[] getFiles(FTPLogin ftpLogin) throws IOException {
-		//ftpLogin.setFtpClient(new FTPClient());
-		//ftpLogin.login(ftpLogin.getUser(), ftpLogin.getPassword());
+		// ftpLogin.setFtpClient(new FTPClient());
+		// ftpLogin.login(ftpLogin.getUser(), ftpLogin.getPassword());
 		return ftpLogin.getFtpClient().listFiles();
 	}
 
@@ -378,8 +383,6 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				try {
 					ftpLogin = new FTPLogin(hostnameText.getText(), Integer.parseInt(portText.getText()));
 					if (ftpLogin.login(userText.getText(), new String(passwordText.getPassword()))) {
-						// this.setEnabled(false);
-						// new DownloadGUI(ftpLogin);
 						loginErrorLabel.setText("<html><font color='green'>Connected...</font></html>");
 						connectButton.setText("Disconnect");
 
@@ -394,9 +397,16 @@ public class DownloadGUI extends JFrame implements ActionListener {
 						allCheckBox.setVisible(true);
 					} else {
 						logger.error(ftpLogin.getFtpClient().getReplyString());
-						loginErrorLabel.setText(ftpLogin.getFtpClient().getReplyString());
+						if (ftpLogin.getFtpClient().getReplyString() != null) {
+							loginErrorLabel.setText("<html><font color='red'>"
+									+ ftpLogin.getFtpClient().getReplyString() + "</font></html>");
+						} else {
+							loginErrorLabel.setText("<html><font color='red'>"
+									+ "Problems with credentials Probably host or port not correct."
+									+ "</font></html>");
+						}
 					}
-
+					
 				} catch (Exception ex) {
 					loginErrorLabel
 							.setText("<html><font color='red'>Problems logging in. Check again your credentials.</font></html>");
@@ -405,20 +415,26 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				try {
 					ftpLogin.getFtpClient().logout();
 					ftpLogin.getFtpClient().disconnect();
+
 					
+					loginErrorLabel.setText("<html><font color='green'>Disconnected...</font></html>");
+
+					
+					customTable.setAllCheckBoxes(false);
+					
+					
+				} catch (IOException e1) {
+					loginErrorLabel
+							.setText("<html><font color='red'>Logged out. But, your connect was closed previously to logging out...</font></html>");
+				} finally {
 					connectButton.setText("Connect");
 					hostnameText.setEditable(true);
 					userText.setEditable(true);
 					passwordText.setEditable(true);
 					portText.setEditable(true);
-					loginErrorLabel.setText("<html><font color='green'>Disconnected...</font></html>");
-
 					notConectedLabel.setVisible(true);
 					customTable.setVisible(false);
 					allCheckBox.setVisible(false);
-				} catch (IOException e1) {
-					loginErrorLabel
-							.setText("<html><font color='red'>Problem logging out. Please try again...</font></html>");
 				}
 			}
 		}

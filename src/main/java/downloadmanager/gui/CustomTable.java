@@ -248,4 +248,5 @@ public class CustomTable extends JPanel {
 			}
 		}
 	}
+	
 }

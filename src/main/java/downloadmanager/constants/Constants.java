@@ -47,7 +47,11 @@ public class Constants {
 	public static final String MB = "MB";
 	public static final String KB = "KB";
 	public static final String BYTES = "bytes";
-	public static final Object FULL_PROGRESS = "100%";
+	public static final String FULL_PROGRESS = "100%";
+	public static final String CONNECTION_LOST = "Connection was lost...";
+	public static final String FILE_EXISTS = "File already exists...";
+	public static final String YES = "Yes";
+	public static final String NO = "No";
 	
 	public static final int DEFAULT_NUMBER_OF_THREADS = 5;
 	public static final int NAME_COLUMN_POSITION = 0;
@@ -56,6 +60,7 @@ public class Constants {
 	public static final int CHECK_COLUMN_POSITION = 3;
 	public static final int PROGRESS_COLUMN_POSITION = 4;
 	public static final int KBYTE = 1024;
+	public static final int CLICKED_YES = 1;
+	public static final int CLICKED_NO = 2;
 
-	
 }

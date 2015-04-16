@@ -88,6 +88,8 @@ public class Downloader {
 							if (index != -1) {
 								displayer.appendToProgress("100%", index);
 								displayer.appendToTextArea(file.getName() + " was not ovewritten.");
+								ftpClient.logout();
+								ftpClient.disconnect();
 							}
 						}
 					} else {
@@ -166,7 +168,7 @@ public class Downloader {
 						try {
 							Thread.sleep(100);
 						} catch (InterruptedException e) {
-							e.printStackTrace();
+							logger.error(e.getMessage());
 						}
 					}
 
