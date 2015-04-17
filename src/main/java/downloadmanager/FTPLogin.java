@@ -92,4 +92,12 @@ public class FTPLogin {
 		this.password = password;
 	}
 
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+	
 }

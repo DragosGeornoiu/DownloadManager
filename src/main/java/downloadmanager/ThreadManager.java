@@ -60,11 +60,11 @@ public class ThreadManager {
 
 		for (int i = 0; i < files.length; i++) {
 			if (names.contains(files[i].getName())) {
-				FTPLogin loginFtp = new FTPLogin(ftpLogin.getServer(), 21);
+				FTPLogin loginFtp = new FTPLogin(ftpLogin.getServer(), ftpLogin.getPort());
 				loginFtp.login(ftpLogin.getUser(), ftpLogin.getPassword());
 
 				ThreadToGUI displayer = new ThreadToGUI(display, customTable);
-				downloaderList.add(new Downloader(displayer, loginFtp.getFtpClient(), files[i], path));
+				downloaderList.add(new Downloader(displayer, loginFtp, files[i], path));
 			}
 		}
 
@@ -145,7 +145,7 @@ public class ThreadManager {
 				loginFtp.login(ftpLogin.getUser(), ftpLogin.getPassword());
 
 				ThreadToGUI displayer = new ThreadToGUI(display, customTable);
-				Downloader downloader = new Downloader(displayer, loginFtp.getFtpClient(), files[i], path);
+				Downloader downloader = new Downloader(displayer, loginFtp, files[i], path);
 				downloaderList.add(downloader);
 				//if (downloaderList.size() < noOfThreads) {
 					Task task = new Task(downloader);

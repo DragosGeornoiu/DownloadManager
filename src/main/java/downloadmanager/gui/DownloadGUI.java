@@ -24,6 +24,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.log4j.Logger;
 
+import downloadmanager.Downloader;
 import downloadmanager.FTPLogin;
 import downloadmanager.ThreadManager;
 import downloadmanager.constants.Constants;
@@ -44,7 +45,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	private JPasswordField passwordText;
 	private JTextField portText;
 	private FTPLogin ftpLogin;
-	JButton connectButton;
+	private JButton connectButton;
 	private JLabel loginErrorLabel;
 	private JLabel notConectedLabel;
 
@@ -283,6 +284,11 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			logger.info("Download button was pressed.");
 			// The download of the selected files starts.
 
+			Downloader.yesToAllOverwrite = false;
+			Downloader.noToAllOverwrite = false;
+			Downloader.yesToAllReconnect = false;
+			Downloader.noToAllReconnect = false;
+			
 			if (runButton.getText().equals(Constants.DOWNLOAD)) {
 				// if (noOfThreadsTextField.getText().trim().isEmpty()) {
 				noOfThreads = (Integer) noOfThreadsComboBox.getSelectedItem();

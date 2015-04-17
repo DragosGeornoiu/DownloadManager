@@ -4,7 +4,7 @@ import downloadmanager.constants.Constants;
 
 public class OverwriteGUI extends PopupGUI{
 	private static final long serialVersionUID = 1L;
-
+	
 	public OverwriteGUI(String name, long sourceFileSize, long targetFileSize) {
 		super(name, sourceFileSize, targetFileSize, Constants.FILE_EXISTS);
 		

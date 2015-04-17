@@ -22,6 +22,8 @@ public abstract class PopupGUI extends JFrame implements ActionListener {
 	protected JLabel textLabel;
 	protected JButton yesButton;
 	protected JButton noButton;
+	protected JButton yesToAllButton;
+	protected JButton noToAllButton;
 	protected boolean pressed;
 	protected int whatButtonWasPressed;
 	
@@ -54,11 +56,21 @@ public abstract class PopupGUI extends JFrame implements ActionListener {
 		yesButton.setBounds(20, 130, 100, 25);
 		panel.add(yesButton);
 		yesButton.addActionListener(this);
+		
+		yesToAllButton = new JButton(Constants.YES_TO_ALL);
+		yesToAllButton.setBounds(20, 170, 100, 25);
+		panel.add(yesToAllButton);
+		yesToAllButton.addActionListener(this);
 
 		noButton = new JButton(Constants.NO);
 		noButton.setBounds(220, 130, 100, 25);
 		panel.add(noButton);
 		noButton.addActionListener(this);
+		
+		noToAllButton = new JButton(Constants.NO_TO_ALL);
+		noToAllButton.setBounds(220, 170, 100, 25);
+		panel.add(noToAllButton);
+		noToAllButton.addActionListener(this);
 
 	}
 
@@ -69,6 +81,10 @@ public abstract class PopupGUI extends JFrame implements ActionListener {
 			whatButtonWasPressed = 1;
 		} else if (e.getSource() == noButton) {
 			whatButtonWasPressed = 2;
+		} else if(e.getSource() == yesToAllButton) {
+			whatButtonWasPressed = 3;
+		} else if(e.getSource() == noToAllButton) {
+			whatButtonWasPressed = 4;
 		}
 
 		this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));

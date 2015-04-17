@@ -1,5 +1,7 @@
 package downloadmanager.constants;
 
+import javax.swing.Icon;
+
 
 public class Constants {
 	private Constants() {
@@ -62,5 +64,7 @@ public class Constants {
 	public static final int KBYTE = 1024;
 	public static final int CLICKED_YES = 1;
 	public static final int CLICKED_NO = 2;
+	public static final String YES_TO_ALL = "Yes to all";
+	public static final String NO_TO_ALL = "No to all";
 
 }
