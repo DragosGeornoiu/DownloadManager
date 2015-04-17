@@ -5,6 +5,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.SocketException;
 
 import javax.swing.SwingUtilities;
 
@@ -37,8 +38,11 @@ public class Downloader {
 	private int remainingInDirectory = 0;
 	private int indexofDirectory = -1;
 	private ThreadToGUI displayer;
-	FTPLogin loginFtp;
-
+	private FTPLogin loginFtp;
+	private BufferedInputStream inputStream = null;
+	private BufferedOutputStream outputStream = null;
+	private long size;
+	
 	Downloader(ThreadToGUI displayer, FTPLogin loginFtp, FTPFile file, String downloadTo) {
 		this.displayer = displayer;
 		this.ftpClient = loginFtp.getFtpClient();
@@ -77,50 +81,10 @@ public class Downloader {
 					File localFile = new File(to, file.getName());
 
 					if (localFile.exists()) {
-
-						if (yesToAllOverwrite == true) {
-							downloadSingleFile(to, file, path);
-						} else if (noToAllOverwrite == true) {
-							doNotOverwrite(file);
-						} else {
-							OverwriteGUI overwrite = new OverwriteGUI(file.getName(), localFile.length(),
-									file.getSize());
-							while (!overwrite.isPressed() && (yesToAllOverwrite != true && noToAllOverwrite != true)) {
-								Thread.sleep(100);
-							}
-
-							if (yesToAllOverwrite == true) {
-								overwrite.dispose();
-								downloadSingleFile(to, file, path);
-							} else if (noToAllOverwrite == true) {
-								overwrite.dispose();
-								doNotOverwrite(file);
-							} else {
-								if (overwrite.getWhatButtonWasPressed() == 1) {
-									downloadSingleFile(to, file, path);
-								} else if (overwrite.getWhatButtonWasPressed() == 3) {
-									yesToAllOverwrite = true;
-									downloadSingleFile(to, file, path);
-								} else if(overwrite.getWhatButtonWasPressed() == 4) {
-									noToAllOverwrite = true;
-									doNotOverwrite(file);
-								} else {
-									doNotOverwrite(file);
-								}
-							}
-						}
+						checkIfOverwrite(to, file, path, localFile);
 					} else {
 						downloadSingleFile(to, file, path);
 					}
-
-					/*
-					 * if ((localFile.length() == file.getSize())) { int index =
-					 * displayer.getIndexWhere(file.getName()); if (index != -1)
-					 * { displayer.appendToProgress("100%", index);
-					 * displayer.appendToTextArea(file.getName() +
-					 * Constants.FILE_ALREADY_DOWNLOADED); } } else {
-					 * downloadSingleFile(to, file, path); }
-					 */
 				}
 			} catch (Exception e) {
 				logger.error(e.getMessage());
@@ -143,16 +107,14 @@ public class Downloader {
 	/**
 	 * Downloads a file that was established not to be a directory.
 	 * 
-	 * @param to
-	 *            where to download the file.
+	 * @param where
+	 *            to download the file.
 	 * @param file
 	 *            what to download
 	 * @param path
 	 *            the path to that file on the server.
 	 */
 	public void downloadSingleFile(String to, final FTPFile file, String path) {
-		BufferedInputStream inputStream = null;
-		BufferedOutputStream outputStream = null;
 		File localFile = new File(to, file.getName());
 
 		if (remainingInDirectory == 0) {
@@ -160,16 +122,20 @@ public class Downloader {
 		}
 
 		try {
-
-			inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(file.getName()));
+			try {
+				inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(file.getName()));
+			} catch(Exception ex) {
+				checkIfReconnect(file, localFile, file.getSize());
+				
+			}
 			outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
 
 			int read;
-			long size = 0;
+			size = 0;
 			long whatSize = file.getSize();
 			byte[] data = new byte[Constants.KBYTE];
 			while (size < whatSize) {
-
+				
 				read = inputStream.read(data);
 				if (read != -1) {
 					size += read;
@@ -189,132 +155,8 @@ public class Downloader {
 						}
 					}
 				} else {
-					if (yesToAllReconnect == true) {
-						ftpClient.connect(loginFtp.getServer(), loginFtp.getPort());
-						ftpClient.login(loginFtp.getUser(), loginFtp.getPassword());
-						inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(file.getName()));
-						outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
-						size = 0;
-
-						alreadyDownloaded = 0;
-						SwingUtilities.invokeLater(new Runnable() {
-							final int index = displayer.getIndexWhere(file.getName());
-
-							public void run() {
-								displayer.appendToProgress("", index);
-
-							}
-						});
-					} else if (noToAllOverwrite == true) {
-						size = whatSize + 1;
-						SwingUtilities.invokeLater(new Runnable() {
-							final int index = displayer.getIndexWhere(file.getName());
-
-							public void run() {
-								displayer.appendToProgress("Failed", index);
-
-							}
-						});
-					} else {
-						ReconnectGUI reconnect = new ReconnectGUI(file.getName(), size, whatSize);
-						while (!reconnect.isPressed() && (yesToAllReconnect != true && noToAllReconnect != true)) {
-							try {
-								Thread.sleep(100);
-							} catch (InterruptedException e) {
-								logger.error(e.getMessage());
-							}
-						}
-
-						if (yesToAllReconnect == true) {
-							reconnect.dispose();
-							ftpClient.connect(loginFtp.getServer(), loginFtp.getPort());
-							ftpClient.login(loginFtp.getUser(), loginFtp.getPassword());
-							inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(file.getName()));
-							outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
-							size = 0;
-
-							alreadyDownloaded = 0;
-							SwingUtilities.invokeLater(new Runnable() {
-								final int index = displayer.getIndexWhere(file.getName());
-
-								public void run() {
-									displayer.appendToProgress("", index);
-
-								}
-							});
-						} else if (noToAllReconnect == true) {
-							reconnect.dispose();
-							size = whatSize + 1;
-							SwingUtilities.invokeLater(new Runnable() {
-								final int index = displayer.getIndexWhere(file.getName());
-
-								public void run() {
-									displayer.appendToProgress("Failed", index);
-
-								}
-							});
-						} else {
-							if (reconnect.getWhatButtonWasPressed() == 1) {
-								reconnect.dispose();
-								ftpClient.connect(loginFtp.getServer(), loginFtp.getPort());
-								ftpClient.login(loginFtp.getUser(), loginFtp.getPassword());
-								inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(file.getName()));
-								outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
-								size = 0;
-
-								alreadyDownloaded = 0;
-								SwingUtilities.invokeLater(new Runnable() {
-									final int index = displayer.getIndexWhere(file.getName());
-
-									public void run() {
-										displayer.appendToProgress("", index);
-
-									}
-								});
-							} else if (reconnect.getWhatButtonWasPressed() == 3) {
-								yesToAllReconnect = true;
-								ftpClient.connect(loginFtp.getServer(), loginFtp.getPort());
-								ftpClient.login(loginFtp.getUser(), loginFtp.getPassword());
-								inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(file.getName()));
-								outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
-								size = 0;
-
-								alreadyDownloaded = 0;
-								SwingUtilities.invokeLater(new Runnable() {
-									final int index = displayer.getIndexWhere(file.getName());
-
-									public void run() {
-										displayer.appendToProgress("", index);
-
-									}
-								});
-							} else if(reconnect.getWhatButtonWasPressed() == 4) {
-								noToAllReconnect = true;
-								size = whatSize + 1;
-								SwingUtilities.invokeLater(new Runnable() {
-									final int index = displayer.getIndexWhere(file.getName());
-
-									public void run() {
-										displayer.appendToProgress("Failed", index);
-
-									}
-								});
-							} else {
-								size = whatSize + 1;
-								SwingUtilities.invokeLater(new Runnable() {
-									final int index = displayer.getIndexWhere(file.getName());
-
-									public void run() {
-										displayer.appendToProgress("Failed", index);
-
-									}
-								});
-							}
-						}
-					}
-					
+					checkIfReconnect(file, localFile, whatSize);
 				}
-
 				synchronized (this) {
 					while (suspended) {
 						wait();
@@ -331,14 +173,7 @@ public class Downloader {
 				ftpClient.disconnect();
 			}
 
-			/*
-			 * if (ftpClient.isConnected() &&
-			 * !ftpClient.completePendingCommand()) { ftpClient.logout();
-			 * ftpClient.disconnect();
-			 * logger.error(Constants.FILE_TRANSFER_FAILED); }
-			 */
 		} catch (Exception e) {
-			// e.printStackTrace();
 			logger.error(e.getMessage());
 		}
 	}
@@ -462,5 +297,106 @@ public class Downloader {
 	public boolean isSuspended() {
 		return suspended;
 	}
+	
+	private void checkIfReconnect(FTPFile file, File localFile, long whatSize) throws SocketException, IOException {
+		if (yesToAllReconnect == true) {
+			reconnect(file, localFile);
+		} else if (noToAllReconnect == true) {
+			failedDownload(file, whatSize);
+		} else {
+			ReconnectGUI reconnect = new ReconnectGUI(file.getName(), size, whatSize);
+			while (!reconnect.isPressed() && (yesToAllReconnect != true && noToAllReconnect != true)) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					logger.error(e.getMessage());
+				}
+			}
 
+			if (yesToAllReconnect == true) {
+				reconnect.dispose();
+				reconnect(file, localFile);
+			} else if (noToAllReconnect == true) {
+				reconnect.dispose();
+				failedDownload(file, whatSize);
+			} else {
+				if (reconnect.getWhatButtonWasPressed() == 1) {
+					reconnect.dispose();
+					reconnect(file, localFile);
+				} else if (reconnect.getWhatButtonWasPressed() == 3) {
+					yesToAllReconnect = true;
+					reconnect(file, localFile);
+				} else if (reconnect.getWhatButtonWasPressed() == 4) {
+					noToAllReconnect = true;
+					failedDownload(file, whatSize);
+				} else {
+					failedDownload(file, whatSize);
+				}
+			}
+		}
+	}
+	
+	private void reconnect(final FTPFile file, File localFile) throws SocketException, IOException {
+		ftpClient.connect(loginFtp.getServer(), loginFtp.getPort());
+		ftpClient.login(loginFtp.getUser(), loginFtp.getPassword());
+		inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(file.getName()));
+		outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
+		size = 0;
+
+		alreadyDownloaded = 0;
+		SwingUtilities.invokeLater(new Runnable() {
+			final int index = displayer.getIndexWhere(file.getName());
+
+			public void run() {
+				displayer.appendToProgress("", index);
+
+			}
+		});
+	}
+	
+	private void failedDownload(final FTPFile file, long whatSize) {
+		size = whatSize + 1;
+		SwingUtilities.invokeLater(new Runnable() {
+			final int index = displayer.getIndexWhere(file.getName());
+
+			public void run() {
+				displayer.appendToProgress("Failed", index);
+
+			}
+		});
+	}
+	
+	private void checkIfOverwrite(String to, FTPFile file, String path, File localFile) throws IOException, InterruptedException {
+		if (yesToAllOverwrite == true) {
+			downloadSingleFile(to, file, path);
+		} else if (noToAllOverwrite == true) {
+			doNotOverwrite(file);
+		} else {
+			OverwriteGUI overwrite = new OverwriteGUI(file.getName(), localFile.length(),
+					file.getSize());
+			while (!overwrite.isPressed() && (yesToAllOverwrite != true && noToAllOverwrite != true)) {
+				Thread.sleep(100);
+			}
+
+			if (yesToAllOverwrite == true) {
+				overwrite.dispose();
+				downloadSingleFile(to, file, path);
+			} else if (noToAllOverwrite == true) {
+				overwrite.dispose();
+				doNotOverwrite(file);
+			} else {
+				if (overwrite.getWhatButtonWasPressed() == 1) {
+					downloadSingleFile(to, file, path);
+				} else if (overwrite.getWhatButtonWasPressed() == 3) {
+					yesToAllOverwrite = true;
+					downloadSingleFile(to, file, path);
+				} else if (overwrite.getWhatButtonWasPressed() == 4) {
+					noToAllOverwrite = true;
+					doNotOverwrite(file);
+				} else {
+					doNotOverwrite(file);
+				}
+			}
+		}
+	}
 }

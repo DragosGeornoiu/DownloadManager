@@ -98,15 +98,12 @@ public class ThreadManager {
 	/**
 	 * Resumes the download of all the threads.
 	 */
-	// int noOfThreads
 	public void resume() {
 		isPaused = false;
 		for (int i = 0; i < downloaderList.size(); i++) {
 			downloaderList.get(i).resume();
 		}
 
-		// this.noOfWorkers = noOfThreads;
-		// threadPool.setNoOfThreads(noOfWorkers);
 	}
 
 	public void update(CustomTable customTable, JTextArea display, int noOfThreads, List<String> names,
@@ -154,14 +151,8 @@ public class ThreadManager {
 					}
 					
 					threadPool.execute(task);
-				//} else {
-					//threadPool.addToTaskQueue(new Task(downloader));
-					//downloaderList.add(downloader);
-				//}
-
 			}
 		}
-		// init();
 	}
 
 }

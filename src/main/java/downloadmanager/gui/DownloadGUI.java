@@ -55,7 +55,6 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	private JLabel pathLabel;
 	private String path;
 	private JLabel errorLabel;
-	// private JTextField noOfThreadsTextField;
 	private JComboBox<Integer> noOfThreadsComboBox;
 	private JButton runButton;
 	private JButton refreshButton;
@@ -145,7 +144,6 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		threads.setBounds(10, 175, 100, 25);
 		panel.add(threads);
 
-		// noOfThreadsTextField = new JTextField();
 		noOfThreadsComboBox = new JComboBox<Integer>();
 		noOfThreadsComboBox.setSize(100, 100);
 
@@ -203,7 +201,6 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		JRootPane rootPane = SwingUtilities.getRootPane(connectButton);
 		rootPane.setDefaultButton(connectButton);
 
-		// initialiseTable(ftpLogin);
 	}
 
 	/**
@@ -261,8 +258,6 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	 *             server or receiving a reply from the server.
 	 */
 	private FTPFile[] getFiles(FTPLogin ftpLogin) throws IOException {
-		// ftpLogin.setFtpClient(new FTPClient());
-		// ftpLogin.login(ftpLogin.getUser(), ftpLogin.getPassword());
 		return ftpLogin.getFtpClient().listFiles();
 	}
 
@@ -290,24 +285,16 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			Downloader.noToAllReconnect = false;
 			
 			if (runButton.getText().equals(Constants.DOWNLOAD)) {
-				// if (noOfThreadsTextField.getText().trim().isEmpty()) {
 				noOfThreads = (Integer) noOfThreadsComboBox.getSelectedItem();
 				if (noOfThreads <= 0) {
 					setErrorLabel();
 				}
-				/*
-				 * } else { try { noOfThreads =
-				 * Integer.parseInt(noOfThreadsTextField.getText());
-				 * errorLabel.setText(""); } catch (Exception ex) {
-				 * logger.error(ex.getMessage()); setErrorLabel(); } }
-				 */
 
 				if (noOfThreads <= 0) {
 					setErrorLabel();
 				}
 
 				List<String> names = new ArrayList<String>();
-				// List<JCheckBox> checkBoxes = customTable.getCheckBoxes();
 
 				for (int i = 0; i < customTable.getSizeOfElements(); i++) {
 					if (((Boolean) customTable.retVal(i, Constants.CHECK_COLUMN_POSITION) == true)) {
@@ -370,17 +357,6 @@ public class DownloadGUI extends JFrame implements ActionListener {
 				logger.info("Resume button was pressed.");
 				display.append(Constants.RESUME_MESSAGE + "\n");
 				pauseButton.setText(Constants.PAUSE);
-				// AAAAAAAAAAAAAAAAAAAAAAAAAA
-
-				// try {
-				// noOfThreads =
-				// Integer.parseInt(noOfThreadsTextField.getText());
-				// errorLabel.setText("");
-				// } catch (Exception ex) {
-				// logger.error(ex.getMessage());
-				// setErrorLabel();
-				// }
-				// noOfThreads
 
 				if (workerManager != null) {
 					workerManager.resume();
@@ -457,7 +433,6 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	 */
 	private void setErrorLabel() {
 		noOfThreads = Constants.DEFAULT_NUMBER_OF_THREADS;
-		// noOfThreadsTextField.setText(Integer.toString(noOfThreads));
 		noOfThreadsComboBox.setSelectedIndex(Constants.DEFAULT_NUMBER_OF_THREADS - 1);
 		errorLabel.setText(Constants.INVALID_NUMBER_OF_THREADS_RED);
 	}

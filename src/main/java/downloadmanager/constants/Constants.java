@@ -54,6 +54,8 @@ public class Constants {
 	public static final String FILE_EXISTS = "File already exists...";
 	public static final String YES = "Yes";
 	public static final String NO = "No";
+	public static final String YES_TO_ALL = "Yes to all";
+	public static final String NO_TO_ALL = "No to all";
 	
 	public static final int DEFAULT_NUMBER_OF_THREADS = 5;
 	public static final int NAME_COLUMN_POSITION = 0;
@@ -64,7 +66,5 @@ public class Constants {
 	public static final int KBYTE = 1024;
 	public static final int CLICKED_YES = 1;
 	public static final int CLICKED_NO = 2;
-	public static final String YES_TO_ALL = "Yes to all";
-	public static final String NO_TO_ALL = "No to all";
 
 }
