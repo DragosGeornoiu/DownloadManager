@@ -22,17 +22,58 @@ public class ThreadToGUI {
 		this.customTable = customTable;
 	}
 
+	/**
+	 * Appends the messsage to the textArea.
+	 * 
+	 * @param message
+	 *            the text to be appended
+	 */
 	public void appendToTextArea(String message) {
 		logger.info("Appending to textArea message: " + message);
 		textArea.append(message + "\n");
 	}
 
-	public void appendToProgress(String progress, int index) {
+	/**
+	 * Appends the progress to the table.
+	 * 
+	 * @param progress
+	 *            the progress to be appended.
+	 * @param index
+	 *            the value to be appended.
+	 * 
+	 * @return the name of the file where it appends.
+	 */
+	public String appendToProgress(String progress, int index) {
 		logger.info("Appending to table at index: " + index + " progress: " + progress);
 		customTable.setTextAt(progress, index, 4);
+
+		return getNameWhereIndex(index);
 	}
 
+	/**
+	 * Returns the index where the name of the file is equal to the String given
+	 * as parameter.
+	 * 
+	 * @param name
+	 *            the String to check for.
+	 * 
+	 * @return the index where the name matches.
+	 */
 	public int getIndexWhere(String name) {
 		return customTable.getIndexWhere(name);
+	}
+
+	/**
+	 * Return the name where the index of row is equal to the int given as
+	 * parameter.
+	 * 
+	 * @param index
+	 *            the index of the row.
+	 * @return the String representing the name where the index of the table is
+	 *         equal to the one given as parameter.
+	 */
+	public String getNameWhereIndex(int index) {
+		return (String) customTable.retVal(index, 0);
+
 	}
 }

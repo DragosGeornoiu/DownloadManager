@@ -36,6 +36,7 @@ public class Constants {
 	public static final String TABLE_COLUMN_PROGRESS = "Progress";
 	public static final String FILE_ALREADY_DOWNLOADED = "file was already downloaded.";
 	public static final String FINISHED_DOWNLOADING_DIRECTORY = "Finished downloading directory ";
+	public static final String FAILED_DOWNLOADING_DIRECTORY = "Failed downloading directory ";
 	public static final String CHECK_ALL = "Check all";
 	public static final String STARTING_DOWNLOAD = "Starting download of selected files";
 	public static final String STARTING_DOWNLOAD_OF_DIRECTORY = "Starting download of directory: ";
@@ -53,6 +54,7 @@ public class Constants {
 	public static final String NO = "No";
 	public static final String YES_TO_ALL = "Yes to all";
 	public static final String NO_TO_ALL = "No to all";
+	public static final String FAILED = "Failed";
 	
 	public static final int DEFAULT_NUMBER_OF_THREADS = 5;
 	public static final int NAME_COLUMN_POSITION = 0;

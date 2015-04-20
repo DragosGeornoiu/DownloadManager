@@ -55,26 +55,6 @@ public class Pool extends Thread {
 		System.out.println("Thread " + identificator + " finished his run...");
 	}
 
-	/*
-	 * public void run() { logger.info("Run method called");
-	 * 
-	 * while (!isStopped()) { synchronized (this) { while (taskQueue.isEmpty())
-	 * { try { // aici ii spun threadPool-ului ca thread-ul acesta si-a //
-	 * incheiat download-ul si astepta sa fie refolosit.
-	 * threadPool.finishedRun(this); wait(); } catch (InterruptedException
-	 * ignored) { logger.error(ignored.getMessage()); } }
-	 * 
-	 * try { task = (ITask) taskQueue.take(); } catch (Exception e) {
-	 * logger.error(e.getMessage()); }
-	 * 
-	 * }
-	 * 
-	 * try { task.execute(); } catch (RuntimeException e) {
-	 * logger.error(e.getMessage()); } }
-	 * 
-	 * System.out.println("Thread " + identificator + " finished his run..."); }
-	 */
-
 	public synchronized void doStop() {
 		logger.info("doStop() method called");
 		isStopped = true;

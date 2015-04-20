@@ -129,6 +129,13 @@ public class ThreadManager {
 
 	}
 
+	/**
+	 * Adds a task to the current queue of downloading tasks.
+	 * 
+	 * @param noOfThreads new noOfThreads (remains the same always in current version)
+	 * @param names all the files in the table.
+	 * @param files all the selected files.
+	 */
 	public void addToQueue(int noOfThreads, List<String> names, FTPFile[] files) {
 		// vezi ce se adauga in queue
 

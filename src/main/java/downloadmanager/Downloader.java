@@ -20,7 +20,7 @@ import downloadmanager.gui.ReconnectGUI;
 /**
  * 
  * Downloader is responsible for downloading a file from the given ftpClient and
- * post in the textArea intermediate results.
+ * post in the textArea and table intermediate results.
  *
  */
 public class Downloader {
@@ -42,6 +42,7 @@ public class Downloader {
 	private BufferedInputStream inputStream = null;
 	private BufferedOutputStream outputStream = null;
 	private long size;
+	private int dirIndex;
 
 	Downloader(ThreadToGUI displayer, FTPLogin loginFtp, FTPFile file, String downloadTo) {
 		this.displayer = displayer;
@@ -83,7 +84,7 @@ public class Downloader {
 					if (localFile.exists()) {
 						checkIfOverwrite(to, file, path, localFile);
 					} else {
-						downloadSingleFile(to, file, path);
+						return downloadSingleFile(to, file, path);
 					}
 				}
 			} catch (Exception e) {
@@ -92,16 +93,6 @@ public class Downloader {
 		}
 
 		return true;
-	}
-
-	private void doNotOverwrite(FTPFile file) throws IOException {
-		int index = displayer.getIndexWhere(file.getName());
-		if (index != -1) {
-			displayer.appendToProgress("100%", index);
-			displayer.appendToTextArea(file.getName() + " was not ovewritten.");
-			ftpClient.logout();
-			ftpClient.disconnect();
-		}
 	}
 
 	/**
@@ -114,7 +105,7 @@ public class Downloader {
 	 * @param path
 	 *            the path to that file on the server.
 	 */
-	public void downloadSingleFile(String to, final FTPFile file, String path) {
+	public boolean downloadSingleFile(String to, final FTPFile file, String path) {
 		File localFile = new File(to, file.getName());
 		if (remainingInDirectory == 0) {
 			displayer.appendToTextArea(Constants.STARTING_TO_DOWNLOAD + path + "/" + file.getName());
@@ -124,8 +115,11 @@ public class Downloader {
 			try {
 				inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(file.getName()));
 			} catch (Exception ex) {
-				checkIfReconnect(file, localFile, file.getSize());
-
+				if (remainingInDirectory == 0) {
+					checkIfReconnect(file, localFile, file.getSize());
+				} else {
+					failedDownload(file, file.getSize());
+				}
 			}
 			outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
 
@@ -151,13 +145,15 @@ public class Downloader {
 							});
 
 						}
-						
-						if(alreadyDownloaded == 100) {
+
+						if (alreadyDownloaded == 100) {
 							finished = true;
 						}
 					}
-				} else if (!finished) {
+				} else if (!finished && remainingInDirectory == 0) {
 					checkIfReconnect(file, localFile, whatSize);
+				} else {
+					return false;
 				}
 				synchronized (this) {
 					while (suspended) {
@@ -174,8 +170,7 @@ public class Downloader {
 				ftpClient.logout();
 				ftpClient.disconnect();
 			}
-			
-			
+
 			if (ftpClient != null && !ftpClient.completePendingCommand()) {
 				ftpClient.logout();
 				ftpClient.disconnect();
@@ -185,6 +180,7 @@ public class Downloader {
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		}
+		return true;
 	}
 
 	/**
@@ -198,18 +194,23 @@ public class Downloader {
 	 *            the path to that file on the server.
 	 */
 	public void downloadDirectory(String to, FTPFile file, String path) throws InterruptedException {
-		long whatSize = directorySizeFTP(file);
-		long size = 0;
-		File theDir = new File(to + "\\" + file.getName());
-		if (!theDir.exists()) {
-			try {
-				theDir.mkdir();
-			} catch (SecurityException se) {
-				logger.error("Error: " + se.getMessage());
-			}
-		}
 
 		try {
+			if (ftpClient.printWorkingDirectory().equals("/")) {
+				dirIndex = displayer.getIndexWhere(file.getName());
+			}
+
+			long whatSize = directorySizeFTP(file);
+			long size = 0;
+			File theDir = new File(to + "\\" + file.getName());
+			if (!theDir.exists()) {
+				try {
+					theDir.mkdir();
+				} catch (SecurityException se) {
+					logger.error("Error: " + se.getMessage());
+				}
+			}
+
 			if (ftpClient.printWorkingDirectory().equals("/" + file.getName())) {
 				displayer.appendToTextArea(Constants.STARTING_DOWNLOAD_OF_DIRECTORY + path + "/" + file.getName());
 			}
@@ -225,20 +226,28 @@ public class Downloader {
 					i++;
 					long directoryAlreadyDownloaded = 0;
 
-					download(to + "\\" + file.getName(), ftpFile, path + "/" + file.getName());
-					remainingInDirectory--;
-					size = folderSize(theDir);
+					if (download(to + "\\" + file.getName(), ftpFile, path + "/" + file.getName())) {
+						remainingInDirectory--;
+						size = folderSize(theDir);
 
-					if (indexofDirectory == -1 || ftpClient.printWorkingDirectory().equals("/")) {
-						indexofDirectory = displayer.getIndexWhere(file.getName());
-					}
-
-					if (size * 100 / whatSize > directoryAlreadyDownloaded) {
-						directoryAlreadyDownloaded = (int) (size * 100 / whatSize);
-
-						if (indexofDirectory != -1) {
-							displayer.appendToProgress(directoryAlreadyDownloaded + "%", indexofDirectory);
+						if (indexofDirectory == -1 || ftpClient.printWorkingDirectory().equals("/")) {
+							indexofDirectory = displayer.getIndexWhere(file.getName());
 						}
+
+						if (size * 100 / whatSize > directoryAlreadyDownloaded) {
+							directoryAlreadyDownloaded = (int) (size * 100 / whatSize);
+
+							if (indexofDirectory != -1) {
+								displayer.appendToProgress(directoryAlreadyDownloaded + "%", indexofDirectory);
+							}
+						}
+					} else {
+						System.out.println("AAAAAAAA");
+						i = files.length;
+						String name = displayer.appendToProgress(Constants.FAILED, dirIndex);
+						displayer.appendToTextArea(Constants.FAILED_DOWNLOADING_DIRECTORY + name);
+						System.out.println("dirIndex:" + dirIndex);
+
 					}
 				}
 			}
@@ -253,18 +262,18 @@ public class Downloader {
 	}
 
 	/**
-	 * Calculates the size of a directory.
+	 * Calculates the size of a FTP directory.
 	 * 
-	 * @param files2
+	 * @param ftpFile
 	 *            the file representing a directory. It has been checked with
 	 *            isDirectory() already.
 	 * @return the size of the directory.
 	 */
-	public long directorySizeFTP(FTPFile files2) {
+	public long directorySizeFTP(FTPFile ftpFile) {
 		long length = 0;
 
 		try {
-			ftpClient.changeWorkingDirectory(files2.getName());
+			ftpClient.changeWorkingDirectory(ftpFile.getName());
 			for (FTPFile file : ftpClient.listFiles()) {
 				if (file.isFile()) {
 					length += file.getSize();
@@ -280,6 +289,14 @@ public class Downloader {
 		return length;
 	}
 
+	/**
+	 * Calculates the size of a local directory.
+	 * 
+	 * @param directory
+	 *            the file representing a directory. It has been checked with
+	 *            isDirectory() already.
+	 * @return the size of the directory.
+	 */
 	public long folderSize(File directory) {
 		long length = 0;
 		for (File file : directory.listFiles()) {
@@ -310,6 +327,20 @@ public class Downloader {
 		return suspended;
 	}
 
+	/**
+	 * Asks the user if he wants to reconnect and try to download again the file
+	 * for which the connection failed.
+	 * 
+	 * @param file
+	 *            FtpFile that the user is trying to download.
+	 * @param localFile
+	 *            File where the FtpFile is downloaded.
+	 * @param whatSize
+	 *            size of ftpFile.
+	 * 
+	 * @throws SocketException
+	 * @throws IOException
+	 */
 	private void checkIfReconnect(FTPFile file, File localFile, long whatSize) throws SocketException, IOException {
 		if (yesToAllReconnect == true) {
 			reconnect(file, localFile);
@@ -348,6 +379,18 @@ public class Downloader {
 		}
 	}
 
+	/**
+	 * The user has accepted to try to reconnect and download again the file for
+	 * which the connection failed.
+	 * 
+	 * @param file
+	 *            FtpFile that the user is trying to download.
+	 * @param localFile
+	 *            File where the FtpFile is downloaded.
+	 * 
+	 * @throws SocketException
+	 * @throws IOException
+	 */
 	private void reconnect(final FTPFile file, File localFile) throws SocketException, IOException {
 		ftpClient.connect(loginFtp.getServer(), loginFtp.getPort());
 		ftpClient.login(loginFtp.getUser(), loginFtp.getPassword());
@@ -366,18 +409,43 @@ public class Downloader {
 		});
 	}
 
+	/**
+	 * The user has rejected to try to reconnect and downloag again the file for
+	 * which the connection failed.
+	 * 
+	 * @param file
+	 *            FtpFile that the user is trying to download.
+	 * @param whatSize
+	 *            size of the ftpFile.
+	 */
 	private void failedDownload(final FTPFile file, long whatSize) {
 		size = whatSize + 1;
 		SwingUtilities.invokeLater(new Runnable() {
 			final int index = displayer.getIndexWhere(file.getName());
 
 			public void run() {
-				displayer.appendToProgress("Failed", index);
+				displayer.appendToProgress(Constants.FAILED, index);
 
 			}
 		});
 	}
 
+	/**
+	 * Asks the user if he want to overwrite or not the file written on the
+	 * disk.
+	 * 
+	 * @param to
+	 *            where the ftpFile is located.
+	 * @param file
+	 *            the FtpFile.
+	 * @param path
+	 *            the path to the file.
+	 * @param localFile
+	 *            the file on the local disk.
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	private void checkIfOverwrite(String to, FTPFile file, String path, File localFile) throws IOException,
 			InterruptedException {
 		if (yesToAllOverwrite == true) {
@@ -409,6 +477,25 @@ public class Downloader {
 					doNotOverwrite(file);
 				}
 			}
+		}
+	}
+
+	/**
+	 * The user refused to overwrite the file on his local disk..
+	 * 
+	 * @param file
+	 *            the ftpFile that wasn't downloaded to local disk.
+	 * 
+	 * 
+	 * @throws IOException
+	 */
+	private void doNotOverwrite(FTPFile file) throws IOException {
+		int index = displayer.getIndexWhere(file.getName());
+		if (index != -1) {
+			displayer.appendToProgress("100%", index);
+			displayer.appendToTextArea(file.getName() + " was not ovewritten.");
+			ftpClient.logout();
+			ftpClient.disconnect();
 		}
 	}
 }

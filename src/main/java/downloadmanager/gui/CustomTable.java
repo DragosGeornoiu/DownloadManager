@@ -237,6 +237,7 @@ public class CustomTable extends JPanel {
 		}
 		return -1;
 	}
+	
 
 	public void setTextAt(String text, int row, int column) {
 		table.setValueAt(text, row, column);
