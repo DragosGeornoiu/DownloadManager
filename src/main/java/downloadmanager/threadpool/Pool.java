@@ -14,7 +14,7 @@ public class Pool extends Thread {
 	private volatile boolean isStopped = false;
 	private ThreadPool threadPool;
 	private static int mCount;
-	ITask task;
+	private ITask task;
 
 	public Pool(BlockingQueue<ITask> queue, ThreadPool threadPool) {
 		taskQueue = queue;

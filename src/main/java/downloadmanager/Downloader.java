@@ -42,7 +42,7 @@ public class Downloader {
 	private BufferedInputStream inputStream = null;
 	private BufferedOutputStream outputStream = null;
 	private long size;
-	
+
 	Downloader(ThreadToGUI displayer, FTPLogin loginFtp, FTPFile file, String downloadTo) {
 		this.displayer = displayer;
 		this.ftpClient = loginFtp.getFtpClient();
@@ -116,7 +116,6 @@ public class Downloader {
 	 */
 	public void downloadSingleFile(String to, final FTPFile file, String path) {
 		File localFile = new File(to, file.getName());
-
 		if (remainingInDirectory == 0) {
 			displayer.appendToTextArea(Constants.STARTING_TO_DOWNLOAD + path + "/" + file.getName());
 		}
@@ -124,9 +123,9 @@ public class Downloader {
 		try {
 			try {
 				inputStream = new BufferedInputStream(ftpClient.retrieveFileStream(file.getName()));
-			} catch(Exception ex) {
+			} catch (Exception ex) {
 				checkIfReconnect(file, localFile, file.getSize());
-				
+
 			}
 			outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
 
@@ -134,13 +133,12 @@ public class Downloader {
 			size = 0;
 			long whatSize = file.getSize();
 			byte[] data = new byte[Constants.KBYTE];
+			boolean finished = false;
 			while (size < whatSize) {
-				
 				read = inputStream.read(data);
 				if (read != -1) {
 					size += read;
 					outputStream.write(data, 0, read);
-
 					if (size * 100 / whatSize > alreadyDownloaded) {
 						alreadyDownloaded = (int) (size * 100 / whatSize);
 						final int index = displayer.getIndexWhere(file.getName());
@@ -153,8 +151,12 @@ public class Downloader {
 							});
 
 						}
+						
+						if(alreadyDownloaded == 100) {
+							finished = true;
+						}
 					}
-				} else {
+				} else if (!finished) {
 					checkIfReconnect(file, localFile, whatSize);
 				}
 				synchronized (this) {
@@ -171,6 +173,13 @@ public class Downloader {
 				displayer.appendToTextArea(Constants.FINISHED_DOWNLOADING + path + "/" + file.getName());
 				ftpClient.logout();
 				ftpClient.disconnect();
+			}
+			
+			
+			if (ftpClient != null && !ftpClient.completePendingCommand()) {
+				ftpClient.logout();
+				ftpClient.disconnect();
+				logger.error(Constants.FILE_TRANSFER_FAILED);
 			}
 
 		} catch (Exception e) {
@@ -215,12 +224,15 @@ public class Downloader {
 					FTPFile ftpFile = files[i];
 					i++;
 					long directoryAlreadyDownloaded = 0;
-					if (indexofDirectory == -1 || ftpClient.printWorkingDirectory().equals("/")) {
-						indexofDirectory = displayer.getIndexWhere(file.getName());
-					}
+
 					download(to + "\\" + file.getName(), ftpFile, path + "/" + file.getName());
 					remainingInDirectory--;
 					size = folderSize(theDir);
+
+					if (indexofDirectory == -1 || ftpClient.printWorkingDirectory().equals("/")) {
+						indexofDirectory = displayer.getIndexWhere(file.getName());
+					}
+
 					if (size * 100 / whatSize > directoryAlreadyDownloaded) {
 						directoryAlreadyDownloaded = (int) (size * 100 / whatSize);
 
@@ -297,7 +309,7 @@ public class Downloader {
 	public boolean isSuspended() {
 		return suspended;
 	}
-	
+
 	private void checkIfReconnect(FTPFile file, File localFile, long whatSize) throws SocketException, IOException {
 		if (yesToAllReconnect == true) {
 			reconnect(file, localFile);
@@ -335,7 +347,7 @@ public class Downloader {
 			}
 		}
 	}
-	
+
 	private void reconnect(final FTPFile file, File localFile) throws SocketException, IOException {
 		ftpClient.connect(loginFtp.getServer(), loginFtp.getPort());
 		ftpClient.login(loginFtp.getUser(), loginFtp.getPassword());
@@ -353,7 +365,7 @@ public class Downloader {
 			}
 		});
 	}
-	
+
 	private void failedDownload(final FTPFile file, long whatSize) {
 		size = whatSize + 1;
 		SwingUtilities.invokeLater(new Runnable() {
@@ -365,15 +377,15 @@ public class Downloader {
 			}
 		});
 	}
-	
-	private void checkIfOverwrite(String to, FTPFile file, String path, File localFile) throws IOException, InterruptedException {
+
+	private void checkIfOverwrite(String to, FTPFile file, String path, File localFile) throws IOException,
+			InterruptedException {
 		if (yesToAllOverwrite == true) {
 			downloadSingleFile(to, file, path);
 		} else if (noToAllOverwrite == true) {
 			doNotOverwrite(file);
 		} else {
-			OverwriteGUI overwrite = new OverwriteGUI(file.getName(), localFile.length(),
-					file.getSize());
+			OverwriteGUI overwrite = new OverwriteGUI(file.getName(), localFile.length(), file.getSize());
 			while (!overwrite.isPressed() && (yesToAllOverwrite != true && noToAllOverwrite != true)) {
 				Thread.sleep(100);
 			}

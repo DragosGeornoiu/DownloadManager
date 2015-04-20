@@ -34,7 +34,7 @@ public class ThreadManager {
 	private ThreadPool threadPool;
 	private JButton downloadButton;
 	private JComboBox<Integer> displayNoOfThreads;
-	boolean isPaused;
+	private boolean isPaused;
 
 	public ThreadManager(JComboBox<Integer> noOfThreadsTextField, JButton downloadButton, CustomTable customTable,
 			JTextArea display, int noOfThreads, List<String> names, FTPFile[] files, FTPLogin ftpLogin, String path) {

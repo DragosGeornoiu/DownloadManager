@@ -105,6 +105,7 @@ public class CustomTable extends JPanel {
 
 		// table.setAutoCreateRowSorter(true);
 
+		table.getTableHeader().setReorderingAllowed(false);
 		TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(table.getModel());
 		table.setRowSorter(sorter);
 		Comparator<String> fileSizesComparator = new Comparator<String>() {

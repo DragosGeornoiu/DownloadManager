@@ -16,20 +16,17 @@ public class ThreadPool {
 	final static Logger logger = Logger.getLogger(ThreadPool.class);
 
 	private BlockingQueue<ITask> taskQueue = null;
-	// private List<Pool> threads;
-	Hashtable<Integer, Pool> threads;
+	private Hashtable<Integer, Pool> threads;
 	private List<Pool> reusableThreads;
 	private boolean isStopped = false;
 	private int noOfThreads;
-	ThreadManager threadManager;
+	private ThreadManager threadManager;
 
 	public ThreadPool(int noOfThreads, ThreadManager threadManager) {
 		logger.info("Thread Pool initialised with " + noOfThreads + " threads.");
 		taskQueue = new LinkedBlockingQueue<ITask>();
-		// threads = new ArrayList<Pool>();
 		threads = new Hashtable<Integer, Pool>();
 		this.noOfThreads = noOfThreads;
-		// inca o structura pt. a le memora pe cele deja initializate
 		reusableThreads = new ArrayList<Pool>();
 
 		this.threadManager = threadManager;
@@ -80,14 +77,6 @@ public class ThreadPool {
 
 	public void finishedRun(Pool ITask) {
 		reusableThreads.add(ITask);
-		/*for (int i = 0; i < threads.size(); i++) {
-			// threads hashtable, identificator
-			Pool p = threads.get(i);
-			if (p.getIdentificator() == ITask.getIdentificator()) {
-				threads.remove(i);
-				break;
-			}
-		}*/
 		
 		threads.remove(ITask.getIdentificator());
 
@@ -107,10 +96,6 @@ public class ThreadPool {
 			Pool val = threads.get(key);
 			val.doStop();
 		}
-
-		/*for (Pool thread : threads) {
-			thread.doStop();
-		}*/
 	}
 
 	public int getNoOfThreads() {

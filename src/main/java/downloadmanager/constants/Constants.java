@@ -1,8 +1,5 @@
 package downloadmanager.constants;
 
-import javax.swing.Icon;
-
-
 public class Constants {
 	private Constants() {
 	}
