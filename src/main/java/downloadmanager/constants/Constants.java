@@ -65,5 +65,8 @@ public class Constants {
 	public static final int KBYTE = 1024;
 	public static final int CLICKED_YES = 1;
 	public static final int CLICKED_NO = 2;
-
+	public static final int PRESSED_YES_BUTTON = 1;
+	public static final int PRESSED_NO_BUTTON = 2;
+	public static final int PRESSED_YES_TO_ALL_BUTTON = 3;
+	public static final int PRESSED_NO_TO_ALL_BUTTON = 4;
 }

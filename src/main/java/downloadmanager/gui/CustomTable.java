@@ -23,8 +23,8 @@ import javax.swing.table.TableRowSorter;
 import downloadmanager.constants.Constants;
 
 /**
- * Initializes the table where the details of the files stored on the given
- * hostname.
+ * Initializes the table where the details of the files stored on the given host
+ * are.
  */
 public class CustomTable extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -52,7 +52,6 @@ public class CustomTable extends JPanel {
 
 		sizeOfElements = options.length;
 
-		// all cells aren't editable except the one where the check boxes are.
 		DefaultTableModel tableModel = new DefaultTableModel(rowData, columnNames) {
 			private static final long serialVersionUID = 1L;
 
@@ -66,7 +65,6 @@ public class CustomTable extends JPanel {
 			}
 		};
 
-		// Checkboxes need the Boolean type and JTable auto renders it.
 		table = new JTable(tableModel) {
 			private static final long serialVersionUID = 1L;
 
@@ -88,22 +86,10 @@ public class CustomTable extends JPanel {
 
 			@Override
 			public boolean isCellEditable(int row, int column) {
-				// TODO Auto-generated method stub
-
-				/*if (column == Constants.CHECK_COLUMN_POSITION) {
-					String progress = (String) getValueAt(row, column + 1); 
-					if (!(progress.isEmpty() || progress == null) && (progress.equals(Constants.FULL_PROGRESS))) {
-							setValueAt(true, row, column);
-							return false;
-					}
-				}*/
-
 				return super.isCellEditable(row, column);
 			}
 
 		};
-
-		// table.setAutoCreateRowSorter(true);
 
 		table.getTableHeader().setReorderingAllowed(false);
 		TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(table.getModel());
@@ -237,7 +223,6 @@ public class CustomTable extends JPanel {
 		}
 		return -1;
 	}
-	
 
 	public void setTextAt(String text, int row, int column) {
 		table.setValueAt(text, row, column);
@@ -250,11 +235,11 @@ public class CustomTable extends JPanel {
 			}
 		}
 	}
-	
+
 	public void setAllProgressesToZero() {
 		for (int i = 0; i < sizeOfElements; i++) {
-				table.setValueAt("", i, Constants.PROGRESS_COLUMN_POSITION);
+			table.setValueAt("", i, Constants.PROGRESS_COLUMN_POSITION);
 		}
 	}
-	
+
 }

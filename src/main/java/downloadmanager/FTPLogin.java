@@ -14,7 +14,9 @@ public class FTPLogin {
 	final static Logger logger = Logger.getLogger(FTPLogin.class);
 
 	private FTPClient ftpClient;
+	/** The host to which the user is trying to connect */
 	private String server;
+	/** The port to which the user is trying to connect */
 	private int port;
 	private String user;
 	private String password;

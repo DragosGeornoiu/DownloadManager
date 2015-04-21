@@ -14,7 +14,15 @@ import downloadmanager.gui.CustomTable;
 public class ThreadToGUI {
 	final static Logger logger = Logger.getLogger(ThreadToGUI.class);
 
+	/**
+	 * The component of the UI where the user is informed when a download start
+	 * and finishes.
+	 */
 	private JTextArea textArea;
+	/**
+	 * The component of the UI where the user is shown the files stored where he
+	 * connected and the progress of their download.
+	 */
 	private CustomTable customTable;
 
 	public ThreadToGUI(JTextArea textArea, CustomTable customTable) {

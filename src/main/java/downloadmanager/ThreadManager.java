@@ -23,17 +23,43 @@ import downloadmanager.threadpool.ThreadPool;
 public class ThreadManager {
 	final static Logger logger = Logger.getLogger(ThreadManager.class);
 
+	/**
+	 * Where the user is informed when the download of a file/directory started.
+	 */
 	private JTextArea display;
+	/** The number of threads the user has selected. */
 	private int noOfWorkers;
+	/** Where the files the user has selected to be downloaded will be stored. */
 	private List<Downloader> downloaderList;
+	/** The files that the user has selected to be downloaded. */
 	private FTPFile[] files;
+	/**
+	 * Represents all the files/directories on the server (also all that are in
+	 * the table).
+	 */
 	private List<String> names;
+	/** The FtpLogin with which the user connected and logged in to the host */
 	private FTPLogin ftpLogin;
+	/**
+	 * The table with all the files/directories on the server and where the
+	 * progress is updated.
+	 */
 	private CustomTable customTable;
+	/** Where to download the file selected file on the server. */
 	private String path;
+	/** The ThreadPool where all the threads are stored */
 	private ThreadPool threadPool;
+	/**
+	 * The button the user click to start downloading, or (if already
+	 * downloaded) to add more files to the queue.
+	 */
 	private JButton downloadButton;
+	/**
+	 * The UI part where the user selects the number of threads, used for
+	 * disabling it when the download start and enabling it when it finishes..
+	 */
 	private JComboBox<Integer> displayNoOfThreads;
+	/** Used to check if the threads are paused or not */
 	private boolean isPaused;
 
 	public ThreadManager(JComboBox<Integer> noOfThreadsTextField, JButton downloadButton, CustomTable customTable,
@@ -50,9 +76,8 @@ public class ThreadManager {
 	}
 
 	/**
-	 * The executor is given a fixed thread pool with the noOfWorkers inserted
-	 * in the user interface and starts the download of each file selected to be
-	 * downloaded on a thread (if the thread pool allows it)
+	 * The threadPool is given as many threads as possible (or as necessary).
+	 * The maximum number being the one that the user set in the UI.
 	 */
 	public void init() {
 		logger.info(Constants.STARTING_DOWNLOAD);
@@ -85,9 +110,7 @@ public class ThreadManager {
 
 	}
 
-	/**
-	 * Pauses the download of all the threads.
-	 */
+	/** Pauses the download of all the threads. */
 	public void pause() {
 		isPaused = true;
 		for (int i = 0; i < downloaderList.size(); i++) {
@@ -95,9 +118,7 @@ public class ThreadManager {
 		}
 	}
 
-	/**
-	 * Resumes the download of all the threads.
-	 */
+	/** Resumes the download of all the threads. */
 	public void resume() {
 		isPaused = false;
 		for (int i = 0; i < downloaderList.size(); i++) {
@@ -106,19 +127,33 @@ public class ThreadManager {
 
 	}
 
+	/**
+	 * Updates the ThreadManager with the new settings.
+	 * 
+	 * @param customTable
+	 *            the UI component where all the files, their type and the
+	 *            progress is shown to the user.
+	 * @param display where the user is notified about the start or end of a download.
+	 * @param noOfThreads the number of threads selected by the user.
+	 * @param names all the file names in the table
+	 * @param files the files that the user selected to be downloaded.
+	 * @param ftpLogin the ftpLogin with which the user connected and logged in.
+	 * @param path where to download the files.
+	 */
 	public void update(CustomTable customTable, JTextArea display, int noOfThreads, List<String> names,
-			FTPFile[] files, FTPLogin downloader, String path) {
+			FTPFile[] files, FTPLogin ftpLogin, String path) {
 		this.customTable = customTable;
 		this.display = display;
 		this.noOfWorkers = noOfThreads;
 		this.files = files;
 		this.names = names;
-		this.ftpLogin = downloader;
+		this.ftpLogin = ftpLogin;
 		this.path = path;
 
 		init();
 	}
 
+	/** Changes the role of the 'download button'. */
 	public void setDownloadButton() {
 		if (downloadButton.getText().equals(Constants.DOWNLOAD)) {
 			downloadButton.setText(Constants.ADD_TO_QUEUE);
@@ -132,9 +167,12 @@ public class ThreadManager {
 	/**
 	 * Adds a task to the current queue of downloading tasks.
 	 * 
-	 * @param noOfThreads new noOfThreads (remains the same always in current version)
-	 * @param names all the files in the table.
-	 * @param files all the selected files.
+	 * @param noOfThreads
+	 *            new noOfThreads (remains the same always in current version)
+	 * @param names
+	 *            all the files in the table.
+	 * @param files
+	 *            all the selected files.
 	 */
 	public void addToQueue(int noOfThreads, List<String> names, FTPFile[] files) {
 		// vezi ce se adauga in queue
@@ -151,13 +189,13 @@ public class ThreadManager {
 				ThreadToGUI displayer = new ThreadToGUI(display, customTable);
 				Downloader downloader = new Downloader(displayer, loginFtp, files[i], path);
 				downloaderList.add(downloader);
-				//if (downloaderList.size() < noOfThreads) {
-					Task task = new Task(downloader);
-					if (isPaused) {
-						task.pause();
-					}
-					
-					threadPool.execute(task);
+				// if (downloaderList.size() < noOfThreads) {
+				Task task = new Task(downloader);
+				if (isPaused) {
+					task.pause();
+				}
+
+				threadPool.execute(task);
 			}
 		}
 	}

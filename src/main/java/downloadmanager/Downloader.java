@@ -25,24 +25,48 @@ import downloadmanager.gui.ReconnectGUI;
  */
 public class Downloader {
 	final static Logger logger = Logger.getLogger(Downloader.class);
+	/**
+	 * The static volatile boolean members are used when the user selects if he
+	 * wants to overwrite the files written on disk of if he wants to reconnect
+	 * when a connection failes.
+	 */
 	public static volatile boolean yesToAllOverwrite;
 	public static volatile boolean noToAllOverwrite;
 	public static volatile boolean yesToAllReconnect;
 	public static volatile boolean noToAllReconnect;
 
+	/**
+	 * Used for checking if the thread on which the Downloader is running was
+	 * paused or not.
+	 */
 	private boolean suspended = false;
+	/** The ftpClient that manages the download. */
 	private FTPClient ftpClient;
+	/** The file selected to be downloaded */
 	private FTPFile remoteFile;
+	/** Where to download the selected file */
 	private String downloadTo;
+	/**
+	 * Represents in what percentage has the file downloaded.
+	 */
 	private int alreadyDownloaded = 0;
+	/**
+	 * Used for checking if inside a directory, representing the number of files
+	 * remaining to be downloaded in the current directory
+	 */
 	private int remainingInDirectory = 0;
+	/** Used to check where in the table to update the progress */
 	private int indexofDirectory = -1;
+	/** Used for updating the UI */
 	private ThreadToGUI displayer;
+	/** The FtpLogin representing the succeded connection of the user */
 	private FTPLogin loginFtp;
+	/** Used for reading from the remoteFile */
 	private BufferedInputStream inputStream = null;
+	/** Used for writing in the file located on disk */
 	private BufferedOutputStream outputStream = null;
+	/** Represents the size of the file that has been downloaded. */
 	private long size;
-	private int dirIndex;
 
 	Downloader(ThreadToGUI displayer, FTPLogin loginFtp, FTPFile file, String downloadTo) {
 		this.displayer = displayer;
@@ -52,7 +76,10 @@ public class Downloader {
 		this.loginFtp = loginFtp;
 	}
 
-	public void execute() {
+	/**
+	 * Starts the download to the downloadTo path of the remoteFile starts.
+	 */
+	public void startDownload() {
 		download(downloadTo, remoteFile, "");
 	}
 
@@ -196,10 +223,6 @@ public class Downloader {
 	public void downloadDirectory(String to, FTPFile file, String path) throws InterruptedException {
 
 		try {
-			if (ftpClient.printWorkingDirectory().equals("/")) {
-				dirIndex = displayer.getIndexWhere(file.getName());
-			}
-
 			long whatSize = directorySizeFTP(file);
 			long size = 0;
 			File theDir = new File(to + "\\" + file.getName());
@@ -242,11 +265,9 @@ public class Downloader {
 							}
 						}
 					} else {
-						System.out.println("AAAAAAAA");
 						i = files.length;
-						String name = displayer.appendToProgress(Constants.FAILED, dirIndex);
+						String name = displayer.appendToProgress(Constants.FAILED, indexofDirectory);
 						displayer.appendToTextArea(Constants.FAILED_DOWNLOADING_DIRECTORY + name);
-						System.out.println("dirIndex:" + dirIndex);
 
 					}
 				}
@@ -308,21 +329,18 @@ public class Downloader {
 		return length;
 	}
 
-	/**
-	 * Pauses the thread, suspending the download.
-	 */
+	/** Pauses the thread, suspending the download. */
 	public void suspend() {
 		suspended = true;
 	}
 
-	/**
-	 * Resumes the download.
-	 */
+	/** Resumes the download. */
 	public synchronized void resume() {
 		suspended = false;
 		notify();
 	}
 
+	
 	public boolean isSuspended() {
 		return suspended;
 	}
@@ -363,13 +381,13 @@ public class Downloader {
 				reconnect.dispose();
 				failedDownload(file, whatSize);
 			} else {
-				if (reconnect.getWhatButtonWasPressed() == 1) {
+				if (reconnect.getWhatButtonWasPressed() == Constants.PRESSED_YES_BUTTON) {
 					reconnect.dispose();
 					reconnect(file, localFile);
-				} else if (reconnect.getWhatButtonWasPressed() == 3) {
+				} else if (reconnect.getWhatButtonWasPressed() == Constants.PRESSED_YES_TO_ALL_BUTTON) {
 					yesToAllReconnect = true;
 					reconnect(file, localFile);
-				} else if (reconnect.getWhatButtonWasPressed() == 4) {
+				} else if (reconnect.getWhatButtonWasPressed() == Constants.PRESSED_NO_TO_ALL_BUTTON) {
 					noToAllReconnect = true;
 					failedDownload(file, whatSize);
 				} else {

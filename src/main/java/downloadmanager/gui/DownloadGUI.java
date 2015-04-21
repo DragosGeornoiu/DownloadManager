@@ -35,36 +35,79 @@ import downloadmanager.constants.Constants;
  * download, where to download it and on how many threads to download.
  *
  */
-
 public class DownloadGUI extends JFrame implements ActionListener {
 	final static Logger logger = Logger.getLogger(DownloadGUI.class);
 	private static final long serialVersionUID = 1L;
 
+	/** Where the user insert the host to connect to */
 	private JTextField hostnameText;
+	/** Where the user inserts the username with which to log in */
 	private JTextField userText;
+	/** Where the user inserts the password with which to log in */
 	private JPasswordField passwordText;
+	/** Where the user inserts the port to connect to */
 	private JTextField portText;
+	/** Used to try to connect and log in. */
 	private FTPLogin ftpLogin;
+	/**
+	 * The button the user presses to try to connect to the give host and port
+	 * with the given username and password
+	 */
 	private JButton connectButton;
+	/** A label used to tell the user what happened when he tried to log in. */
 	private JLabel loginErrorLabel;
+	/** A label used to tell the user that he hasn't connected to any server yet */
 	private JLabel notConectedLabel;
 
+	/** Used to make the table scrollable */
 	private JScrollPane scroll;
+	/**
+	 * Where information about the download starting or finishing is show to the
+	 * user
+	 */
 	private JTextArea display;
+	/**
+	 * Button clicked by the user to tell the path where to download the
+	 * selected files.
+	 */
 	private JButton selectPathButton;
+	/**
+	 * Label to tell the user eventual problems with selecting the path, or, if
+	 * valid, the selected path
+	 */
 	private JLabel pathLabel;
+	/** The path where to download the selected files */
 	private String path;
+	/**
+	 * Used to show the user eventual problems that might of interrupted the
+	 * flow of the application
+	 */
 	private JLabel errorLabel;
+	/**
+	 * The combo box is used to select the number of thread that will be used to
+	 * download the selected files
+	 */
 	private JComboBox<Integer> noOfThreadsComboBox;
+	/** Buttons clicked to start the download or add new files to the queue. */
 	private JButton runButton;
-	private JButton refreshButton;
+	/** Button used to clear the JTextArea. */
 	private JButton clearButton;
+	/** Buttons used to pause/resume the downloads. */
 	private JButton pauseButton;
+	/** Used to check or uncheck all the files on in the table. */
 	private JCheckBox allCheckBox;
+	/** The value representing the number of threads selected by the user. */
 	private int noOfThreads;
+	/**
+	 * The table in which the user selects what to download and where the
+	 * progress is shown.
+	 */
 	private CustomTable customTable;
+	/** The files selected to be downloaded. */
 	private FTPFile[] files;
+	/** The panel in which all the components are displayed */
 	private JPanel panel;
+	/** The threadManager responsible for managing the thread pool of threads. */
 	private ThreadManager workerManager;
 
 	public DownloadGUI() {
@@ -169,11 +212,6 @@ public class DownloadGUI extends JFrame implements ActionListener {
 		pauseButton.setBounds(130, 270, 120, 25);
 		panel.add(pauseButton);
 
-		refreshButton = new JButton(Constants.REFRESH);
-		refreshButton.addActionListener(this);
-		refreshButton.setBounds(350, 55, 100, 25);
-		// panel.add(refreshButton);
-
 		clearButton = new JButton(Constants.CLEAR);
 		clearButton.addActionListener(this);
 		clearButton.setBounds(90, 545, 100, 25);
@@ -271,7 +309,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			} else {
 				pathLabel.setText(Constants.PATH_LABEL + ": " + path);
 				runButton.setEnabled(true);
-				if(customTable != null) {
+				if (customTable != null) {
 					customTable.setAllProgressesToZero();
 				}
 			}
@@ -283,7 +321,7 @@ public class DownloadGUI extends JFrame implements ActionListener {
 			Downloader.noToAllOverwrite = false;
 			Downloader.yesToAllReconnect = false;
 			Downloader.noToAllReconnect = false;
-			
+
 			if (runButton.getText().equals(Constants.DOWNLOAD)) {
 				noOfThreads = (Integer) noOfThreadsComboBox.getSelectedItem();
 				if (noOfThreads <= 0) {
@@ -329,13 +367,6 @@ public class DownloadGUI extends JFrame implements ActionListener {
 
 				workerManager.addToQueue(noOfThreads, names, files);
 			}
-		} else if (e.getSource() == refreshButton) {
-			logger.info("Refesh button was pressed.");
-			// refreshes the table of data to be downloaded, a new file might of
-			// been added there and we shouldn't have to close the application
-			// to see it.
-			initialiseTable(ftpLogin);
-			allCheckBox.setSelected(false);
 		} else if (e.getSource() == clearButton) {
 			logger.info("Clear button was pressed.");
 			// cleares the display textArea.
@@ -383,15 +414,17 @@ public class DownloadGUI extends JFrame implements ActionListener {
 					} else {
 						logger.error(ftpLogin.getFtpClient().getReplyString());
 						if (ftpLogin.getFtpClient().getReplyString() != null) {
-							loginErrorLabel.setText("<html><font color='red'>"
-									+ ftpLogin.getFtpClient().getReplyString().replaceAll("\\d","") + "</font></html>");
+							loginErrorLabel
+									.setText("<html><font color='red'>"
+											+ ftpLogin.getFtpClient().getReplyString().replaceAll("\\d", "")
+											+ "</font></html>");
 						} else {
 							loginErrorLabel.setText("<html><font color='red'>"
 									+ "Problems with credentials. Probably host or port fields are not correct."
 									+ "</font></html>");
 						}
 					}
-					
+
 				} catch (Exception ex) {
 					loginErrorLabel
 							.setText("<html><font color='red'>Problems logging in. Check again your credentials.</font></html>");
@@ -401,13 +434,10 @@ public class DownloadGUI extends JFrame implements ActionListener {
 					ftpLogin.getFtpClient().logout();
 					ftpLogin.getFtpClient().disconnect();
 
-					
 					loginErrorLabel.setText("<html><font color='green'>Disconnected...</font></html>");
 
-					
 					customTable.setAllCheckBoxes(false);
-					
-					
+
 				} catch (IOException e1) {
 					loginErrorLabel
 							.setText("<html><font color='red'>Logged out. But, your connection was closed previously to logging out...</font></html>");
@@ -427,9 +457,9 @@ public class DownloadGUI extends JFrame implements ActionListener {
 	}
 
 	/**
-	 * The user hasn't picked or inserted an invalid number of threads to be
-	 * used, so the number of threads is set to a default value of 5 and using
-	 * the error label, the user is informed of that.
+	 * The user hasn't picked or the user has inserted an invalid number of
+	 * threads to be used, so the number of threads is set to a default value of
+	 * 5 and using the error label, the user is informed of that.
 	 */
 	private void setErrorLabel() {
 		noOfThreads = Constants.DEFAULT_NUMBER_OF_THREADS;

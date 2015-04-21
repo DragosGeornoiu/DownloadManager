@@ -6,14 +6,27 @@ import org.apache.log4j.Logger;
 
 import downloadmanager.task.ITask;
 
+/**
+ * Pool is a thread responsible for downloading files.
+ *
+ */
 public class Pool extends Thread {
 	final static Logger logger = Logger.getLogger(Pool.class);
 
+	/** An id for the thread. */
 	private int identificator;
-	private BlockingQueue<ITask> taskQueue = null;
-	private volatile boolean isStopped = false;
-	private ThreadPool threadPool;
+	/** A counter with which we set the identificator for each thread. */
 	private static int mCount;
+	/** List of tasks to be executed */
+	private BlockingQueue<ITask> taskQueue = null;
+	/** Used for checking if the thread is stopped */
+	private volatile boolean isStopped = false;
+	/**
+	 * An instance of the Thread Pool used to tell it that the current thread
+	 * has completed it's task.
+	 */
+	private ThreadPool threadPool;
+	/** The task to be completed by the thread.	 */
 	private ITask task;
 
 	public Pool(BlockingQueue<ITask> queue, ThreadPool threadPool) {
@@ -26,7 +39,7 @@ public class Pool extends Thread {
 		logger.info("Run method called");
 
 		while (!isStopped()) {
-		//while(!Thread.currentThread().isInterrupted()) {
+			// while(!Thread.currentThread().isInterrupted()) {
 			try {
 				task = (ITask) taskQueue.take();
 				task.execute();
@@ -63,7 +76,7 @@ public class Pool extends Thread {
 		} catch (Exception e) {
 			logger.info(e.getMessage());
 		}
-		
+
 		notify();
 	}
 

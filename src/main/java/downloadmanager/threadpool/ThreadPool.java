@@ -12,14 +12,28 @@ import org.apache.log4j.Logger;
 import downloadmanager.ThreadManager;
 import downloadmanager.task.ITask;
 
+/**
+ * The ThreadPool is responsible for managing the threads. It can create as many
+ * as needed, but takes into consideration the maximum number of threads set by
+ * the user. It is also responsable for reusing the threads and deleting the
+ * unnecessary one.
+ *
+ */
 public class ThreadPool {
 	final static Logger logger = Logger.getLogger(ThreadPool.class);
 
+
+	/** The list of tasks to be executed by the Thread Pool.	 */
 	private BlockingQueue<ITask> taskQueue = null;
+	/** The hashtable where the threads are mapped by their identificator.	 */
 	private Hashtable<Integer, Pool> threads;
+	/** The list of threads that can be reused for future downloads.	 */
 	private List<Pool> reusableThreads;
+	/** Checks if the Thread Pool is stopped or not. */
 	private boolean isStopped = false;
+	/** Represents the maximum number of threads allowed.	 */
 	private int noOfThreads;
+	/** The threadManager is used only to access the "download"/"add to queue" button.	 */
 	private ThreadManager threadManager;
 
 	public ThreadPool(int noOfThreads, ThreadManager threadManager) {
@@ -28,7 +42,6 @@ public class ThreadPool {
 		threads = new Hashtable<Integer, Pool>();
 		this.noOfThreads = noOfThreads;
 		reusableThreads = new ArrayList<Pool>();
-
 		this.threadManager = threadManager;
 	}
 
@@ -75,9 +88,14 @@ public class ThreadPool {
 
 	}
 
+	/**
+	 * Anounces the GUI that a thread has finished it's run method.
+	 * 
+	 * @param ITask the thread that finished it's run.
+	 */
 	public void finishedRun(Pool ITask) {
 		reusableThreads.add(ITask);
-		
+
 		threads.remove(ITask.getIdentificator());
 
 		if (threads.size() == 0) {
@@ -86,6 +104,7 @@ public class ThreadPool {
 		}
 	}
 
+	/** Stops the threadPool, meaning each thread in it. */
 	public synchronized void stop() {
 		logger.info("stop() method called.");
 		this.isStopped = true;
@@ -98,10 +117,11 @@ public class ThreadPool {
 		}
 	}
 
-	public int getNoOfThreads() {
-		return noOfThreads;
-	}
-
+	/**
+	 * Calculates the number of threads needed. 
+	 * 
+	 * @param noOfThreads the maximum number of threads.
+	 */
 	public void setNoOfThreads(int noOfThreads) {
 		if (this.noOfThreads > noOfThreads) {
 			if (reusableThreads.size() + threads.size() < noOfThreads) {
@@ -212,6 +232,10 @@ public class ThreadPool {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public int getNoOfThreads() {
+		return noOfThreads;
 	}
 
 }

@@ -12,7 +12,7 @@ public class Task implements ITask {
 	
 	@Override
 	public void execute() {
-		downloadThread.execute();;
+		downloadThread.startDownload();;
 	}
 
 	public Downloader getDownloadThread() {
